@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama 模型对比助手</title>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.checking { background: var(--warning-color); }
+        .status-dot.connected { background: var(--success-color); }
+        .status-dot.disconnected { background: var(--error-color); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Model Selector */
+        .model-selector h2 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .model-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .model-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .model-card.selected {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .model-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .model-info {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Messages */
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--error-color);
+        }
+
+        .info-message {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #60a5fa;
+        }
+
+        /* Responses Section */
+        .responses-section h2 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .responses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .response-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .response-header {
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .model-label {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .streaming-indicator {
+            font-size: 0.875rem;
+            color: var(--warning-color);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .error-badge {
+            background: var(--error-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .response-content {
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .response-content pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .error-text {
+            color: var(--error-color);
+        }
+
+        /* Input Section */
+        .input-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .input-section textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-section textarea:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-actions {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hint {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .submit-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+
+        .footer p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .model-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .responses-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-actions {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <h1>🤖 Ollama 模型对比助手</h1>
+            <div class="connection-status">
+                <span class="status-dot checking" id="statusDot"></span>
+                <span id="statusText">检查连接中...</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- 模型选择器 -->
+            <section class="model-selector">
+                <h2>选择模型 (<span id="selectedCount">0</span> 个已选)</h2>
+                <div id="modelContainer">
+                    <div class="info-message">正在检查 Ollama 连接...</div>
+                </div>
+            </section>
+
+            <!-- 模型响应区域 -->
+            <section class="responses-section" id="responsesSection" style="display: none;">
+                <h2>模型回复对比</h2>
+                <div class="responses-grid" id="responsesGrid"></div>
+            </section>
+
+            <!-- 输入区域 -->
+            <section class="input-section">
+                <textarea 
+                    id="userInput" 
+                    placeholder="输入你的问题，同时对比多个模型的回答...（Enter 发送，Shift+Enter 换行）"
+                    rows="3"
+                    disabled
+                ></textarea>
+                <div class="input-actions">
+                    <span class="hint" id="hintText">请先选择至少一个模型</span>
+                    <button class="submit-btn" id="submitBtn" disabled>发送对比</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>💡 提示：选择多个模型可以同时对比它们的回答质量和速度</p>
+        </footer>
+    </div>
+
+    <script>
+        // 配置
+        const API_BASE = 'http://127.0.0.1:5008/api';
+        
+        // 状态
+        let models = [];
+        let selectedModels = [];
+        let isLoading = false;
+        let modelResponses = [];
+
+        // DOM 元素
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const modelContainer = document.getElementById('modelContainer');
+        const selectedCount = document.getElementById('selectedCount');
+        const userInput = document.getElementById('userInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const hintText = document.getElementById('hintText');
+        const responsesSection = document.getElementById('responsesSection');
+        const responsesGrid = document.getElementById('responsesGrid');
+
+        // 检查 Ollama 连接
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (data.ok) {
+                    statusDot.className = 'status-dot connected';
+                    statusText.textContent = '已连接';
+                    userInput.disabled = false;
+                    loadModels();
+                } else {
+                    throw new Error('Ollama 不可用');
+                }
+            } catch (error) {
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = '未连接';
+                modelContainer.innerHTML = `
+                    <div class="error-message">
+                        ⚠️ 无法连接到 Ollama 服务，请确保：<br>
+                        1. Ollama 已安装<br>
+                        2. 运行 <code>ollama serve</code> 启动服务<br>
+                        3. 后端服务已启动 (python app.py)
+                    </div>
+                `;
+            }
+        }
+
+        // 加载模型列表
+        async function loadModels() {
+            try {
+                const response = await fetch(`${API_BASE}/models`);
+                const data = await response.json();
+                
+                if (data.ok && data.models) {
+                    models = data.models;
+                    renderModels();
+                } else {
+                    throw new Error('无法获取模型列表');
+                }
+            } catch (error) {
+                modelContainer.innerHTML = `
+                    <div class="error-message">加载模型列表失败: ${error.message}</div>
+                `;
+            }
+        }
+
+        // 格式化大小
+        function formatSize(bytes) {
+            const gb = bytes / (1024 * 1024 * 1024);
+            return gb >= 1 ? `${gb.toFixed(1)} GB` : `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
+        }
+
+        // 渲染模型列表
+        function renderModels() {
+            if (models.length === 0) {
+                modelContainer.innerHTML = '<div class="info-message">暂无可用模型，请先下载模型</div>';
+                return;
+            }
+
+            modelContainer.innerHTML = '<div class="model-grid" id="modelGrid"></div>';
+            const grid = document.getElementById('modelGrid');
+
+            models.forEach(model => {
+                const card = document.createElement('button');
+                card.className = 'model-card';
+                card.innerHTML = `
+                    <div class="model-name">${model.name}</div>
+                    <div class="model-info">
+                        <span>${formatSize(model.size)}</span>
+                    </div>
+                `;
+                card.onclick = () => toggleModel(model.name, card);
+                grid.appendChild(card);
+            });
+        }
+
+        // 切换模型选择
+        function toggleModel(modelName, card) {
+            const index = selectedModels.indexOf(modelName);
+            if (index > -1) {
+                selectedModels.splice(index, 1);
+                card.classList.remove('selected');
+            } else {
+                selectedModels.push(modelName);
+                card.classList.add('selected');
+            }
+            updateUI();
+        }
+
+        // 更新 UI
+        function updateUI() {
+            selectedCount.textContent = selectedModels.length;
+            
+            if (selectedModels.length === 0) {
+                hintText.textContent = '请先选择至少一个模型';
+                submitBtn.disabled = true;
+            } else {
+                hintText.textContent = `将向 ${selectedModels.length} 个模型发送请求`;
+                submitBtn.disabled = isLoading || !userInput.value.trim();
+            }
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message || selectedModels.length === 0 || isLoading) return;
+
+            isLoading = true;
+            submitBtn.textContent = '生成中...';
+            submitBtn.disabled = true;
+            userInput.disabled = true;
+
+            // 初始化响应
+            modelResponses = selectedModels.map(model => ({
+                model,
+                content: '',
+                isStreaming: true,
+                isDone: false
+            }));
+
+            renderResponses();
+            responsesSection.style.display = 'block';
+            userInput.value = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/multi-stream`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        models: selectedModels,
+                        messages: [{ role: 'user', content: message }],
+                        temperature: 0.7,
+                        top_p: 0.9
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.startsWith('data:')) {
+                            try {
+                                const data = JSON.parse(line.substring(5).trim());
+                                
+                                if (data.model && data.content) {
+                                    const resp = modelResponses.find(r => r.model === data.model);
+                                    if (resp) {
+                                        resp.content += data.content;
+                                        updateResponseContent(data.model, resp.content);
+                                    }
+                                }
+                                
+                                if (data.message && data.message.includes('失败')) {
+                                    const resp = modelResponses.find(r => r.model === data.model);
+                                    if (resp) {
+                                        resp.error = data.message;
+                                        resp.isStreaming = false;
+                                        resp.isDone = true;
+                                        updateResponseError(data.model, data.message);
+                                    }
+                                }
+                            } catch (e) {
+                                // 解析错误，忽略
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('请求失败:', error);
+                modelResponses.forEach(resp => {
+                    resp.error = '请求失败，请检查网络连接';
+                    resp.isStreaming = false;
+                    resp.isDone = true;
+                });
+                renderResponses();
+            } finally {
+                isLoading = false;
+                submitBtn.textContent = '发送对比';
+                userInput.disabled = false;
+                updateUI();
+                
+                modelResponses.forEach(resp => {
+                    resp.isStreaming = false;
+                    resp.isDone = true;
+                    updateResponseStatus(resp.model);
+                });
+            }
+        }
+
+        // 渲染响应区域
+        function renderResponses() {
+            responsesGrid.innerHTML = '';
+            
+            modelResponses.forEach(resp => {
+                const card = document.createElement('div');
+                card.className = 'response-card';
+                card.id = `response-${resp.model}`;
+                card.innerHTML = `
+                    <div class="response-header">
+                        <span class="model-label">${resp.model}</span>
+                        <span class="streaming-indicator" id="indicator-${resp.model}">生成中...</span>
+                    </div>
+                    <div class="response-content">
+                        <pre id="content-${resp.model}">等待响应...</pre>
+                    </div>
+                `;
+                responsesGrid.appendChild(card);
+            });
+        }
+
+        // 更新响应内容
+        function updateResponseContent(model, content) {
+            const contentEl = document.getElementById(`content-${model}`);
+            if (contentEl) {
+                contentEl.textContent = content || '等待响应...';
+            }
+        }
+
+        // 更新响应错误
+        function updateResponseError(model, error) {
+            const card = document.getElementById(`response-${model}`);
+            if (card) {
+                card.querySelector('.response-content').innerHTML = `
+                    <div class="error-text">${error}</div>
+                `;
+            }
+            updateResponseStatus(model);
+        }
+
+        // 更新响应状态
+        function updateResponseStatus(model) {
+            const indicator = document.getElementById(`indicator-${model}`);
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
+
+        // 事件监听
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        userInput.addEventListener('input', updateUI);
+        submitBtn.addEventListener('click', sendMessage);
+
+        // 初始化
+        checkConnection();
+    </script>
+</body>
+</html>
