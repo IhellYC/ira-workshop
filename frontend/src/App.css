@@ -1,0 +1,60 @@
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Markdown 内容样式 */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.markdown-content h1 { font-size: 20px; }
+.markdown-content h2 { font-size: 17px; }
+.markdown-content h3 { font-size: 15px; }
+
+.markdown-content p {
+  margin-bottom: 8px;
+  line-height: 1.8;
+  color: #555;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 24px;
+  margin-bottom: 8px;
+}
+
+.markdown-content li {
+  line-height: 1.8;
+  color: #555;
+}
+
+.markdown-content strong {
+  color: #333;
+}
+
+.markdown-content blockquote {
+  border-left: 3px solid #1565c0;
+  padding-left: 12px;
+  margin: 8px 0;
+  color: #666;
+  background: #f6f8fa;
+  padding: 8px 12px;
+  border-radius: 0 4px 4px 0;
+}
+
+/* 上传区域 hover 效果 */
+.ant-upload-drag:hover {
+  border-color: #1565c0 !important;
+}
+
+/* 折叠面板样式优化 */
+.ant-collapse-header {
+  align-items: center !important;
+}
