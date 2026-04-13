@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机点名助手</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: #050508;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Canvas 背景 */
+        #bgCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+        }
+
+        /* 所有内容在 Canvas 之上 */
+        .header, .main-area, .groups-area {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            padding: 36px 20px 16px;
+        }
+
+        .header h1 {
+            font-size: 44px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7, #ff2d95, #00d4ff);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: titleShimmer 4s linear infinite;
+            letter-spacing: 6px;
+        }
+
+        @keyframes titleShimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+
+        .header p {
+            margin-top: 8px;
+            font-size: 15px;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 3px;
+        }
+
+        .main-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 16px;
+            width: 100%;
+            max-width: 700px;
+            padding: 0 20px;
+        }
+
+        /* ---- 展示区域 ---- */
+        .display-box {
+            width: 100%;
+            height: 210px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.08);
+            border-radius: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.4s, box-shadow 0.4s;
+        }
+
+        /* 扫描线 */
+        .display-box::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent 0%, rgba(0,212,255,0.03) 50%, transparent 100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .display-box.rolling::before {
+            opacity: 1;
+            animation: scanLine 1.5s linear infinite;
+        }
+        @keyframes scanLine {
+            0% { top: -100%; }
+            100% { top: 100%; }
+        }
+
+        /* 边框呼吸光 */
+        .display-box.rolling {
+            border-color: rgba(0,212,255,0.6);
+            box-shadow:
+                0 0 20px rgba(0,212,255,0.15),
+                0 0 60px rgba(0,212,255,0.08),
+                inset 0 0 30px rgba(0,212,255,0.04);
+            animation: borderPulse 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes borderPulse {
+            0% { border-color: rgba(0,212,255,0.4); box-shadow: 0 0 20px rgba(0,212,255,0.1), 0 0 60px rgba(0,212,255,0.05); }
+            100% { border-color: rgba(123,47,247,0.6); box-shadow: 0 0 30px rgba(123,47,247,0.2), 0 0 80px rgba(123,47,247,0.08); }
+        }
+
+        .display-box.result {
+            border-color: rgba(255,215,0,0.7);
+            box-shadow:
+                0 0 30px rgba(255,215,0,0.2),
+                0 0 80px rgba(255,215,0,0.1),
+                inset 0 0 40px rgba(255,215,0,0.03);
+            animation: resultGlow 2s ease-in-out infinite alternate;
+        }
+        @keyframes resultGlow {
+            0% { box-shadow: 0 0 30px rgba(255,215,0,0.2), 0 0 80px rgba(255,215,0,0.1); }
+            100% { box-shadow: 0 0 50px rgba(255,215,0,0.35), 0 0 120px rgba(255,215,0,0.15); }
+        }
+
+        .display-group {
+            font-size: 20px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
+            min-height: 28px;
+            transition: all 0.3s;
+        }
+        .display-group.highlight {
+            color: #ffd700;
+            font-weight: 600;
+            text-shadow: 0 0 12px rgba(255,215,0,0.5);
+        }
+
+        .display-name {
+            font-size: 68px;
+            font-weight: 800;
+            min-height: 85px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: #fff;
+        }
+
+        /* 滚动时故障文字效果 */
+        .display-name.glitch {
+            animation: glitchText 0.12s steps(2) infinite;
+            text-shadow:
+                2px 0 #ff2d95,
+                -2px 0 #00d4ff;
+        }
+        @keyframes glitchText {
+            0% { transform: translate(0); }
+            25% { transform: translate(-2px, 1px); }
+            50% { transform: translate(2px, -1px); }
+            75% { transform: translate(-1px, -2px); }
+            100% { transform: translate(1px, 2px); }
+        }
+
+        /* 减速时的颜色过渡 */
+        .display-name.decel {
+            text-shadow: 0 0 15px rgba(123,47,247,0.6), 0 0 30px rgba(0,212,255,0.3);
+        }
+
+        .display-name.result-name {
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255,215,0,0.6), 0 0 60px rgba(255,215,0,0.3);
+            animation: resultReveal 0.6s ease-out forwards, resultFloat 2.5s ease-in-out 0.6s infinite;
+        }
+        @keyframes resultReveal {
+            0% { transform: scale(1.8); opacity: 0; filter: blur(10px); }
+            100% { transform: scale(1); opacity: 1; filter: blur(0); }
+        }
+        @keyframes resultFloat {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.03) translateY(-3px); }
+        }
+
+        .placeholder-text {
+            font-size: 22px;
+            color: rgba(255,255,255,0.25);
+            letter-spacing: 4px;
+        }
+
+        /* ---- 按钮 ---- */
+        .btn-area { margin-top: 28px; display: flex; gap: 18px; }
+
+        .btn {
+            padding: 15px 55px;
+            font-size: 19px;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            letter-spacing: 4px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #00b4d8, #7b2ff7);
+            color: #fff;
+            box-shadow: 0 4px 25px rgba(0,180,216,0.35);
+        }
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 35px rgba(123,47,247,0.5);
+        }
+        .btn-start.rolling {
+            background: linear-gradient(135deg, #ff2d95, #e63946);
+            box-shadow: 0 4px 25px rgba(255,45,149,0.4);
+            animation: btnPulse 0.6s ease-in-out infinite alternate;
+        }
+        @keyframes btnPulse {
+            0% { box-shadow: 0 4px 25px rgba(255,45,149,0.3); }
+            100% { box-shadow: 0 4px 40px rgba(255,45,149,0.6); }
+        }
+
+        .btn-reset {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .btn-reset:hover {
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+        }
+
+        /* ---- 分组区域 ---- */
+        .groups-area {
+            width: 100%;
+            max-width: 1100px;
+            margin-top: 36px;
+            padding: 0 20px 40px;
+        }
+        .groups-title {
+            text-align: center;
+            font-size: 16px;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 18px;
+            letter-spacing: 3px;
+        }
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 900px) { .groups-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px) {
+            .groups-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 28px; }
+            .display-name { font-size: 48px; }
+        }
+
+        .group-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.4s;
+        }
+        .group-card.active {
+            border-color: rgba(255,215,0,0.4);
+            background: rgba(255,215,0,0.06);
+            box-shadow: 0 0 20px rgba(255,215,0,0.08);
+        }
+        .group-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #00b4d8;
+            margin-bottom: 8px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .group-card.active .group-card-title { color: #ffd700; }
+        .group-card-members { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+
+        .member-tag {
+            font-size: 12px;
+            padding: 3px 9px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            color: rgba(255,255,255,0.6);
+            transition: all 0.3s;
+        }
+        .member-tag.selected {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            font-weight: 600;
+            box-shadow: 0 0 12px rgba(255,215,0,0.25);
+        }
+        .member-tag.excluded {
+            background: rgba(255,255,255,0.02);
+            color: rgba(255,255,255,0.15);
+            font-style: italic;
+        }
+        .member-tag.called {
+            background: rgba(255,255,255,0.02);
+            color: rgba(255,255,255,0.2);
+            text-decoration: line-through;
+        }
+
+        /* ---- 历史 ---- */
+        .history-area { width: 100%; max-width: 700px; padding: 0 20px; margin-bottom: 10px; }
+        .history-title { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+        .history-list { display: flex; flex-wrap: wrap; gap: 7px; }
+        .history-item {
+            font-size: 12px;
+            padding: 3px 11px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            color: rgba(255,255,255,0.45);
+        }
+
+        .stats { margin-top: 8px; font-size: 13px; color: rgba(255,255,255,0.3); }
+
+        /* ---- 撒花/爆炸容器 ---- */
+        .confetti-container {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 100;
+        }
+
+        /* 能量环 */
+        .energy-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid;
+            pointer-events: none;
+            animation: energyExpand 0.8s ease-out forwards;
+        }
+        @keyframes energyExpand {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="header">
+        <h1>随机点名助手</h1>
+        <p>培训分组 - 随机抽选</p>
+    </div>
+
+    <div class="main-area">
+        <div class="display-box" id="displayBox">
+            <div class="display-group" id="displayGroup"></div>
+            <div class="display-name" id="displayName">
+                <span class="placeholder-text">点击开始点名</span>
+            </div>
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="btn-area">
+            <button class="btn btn-start" id="btnStart" onclick="toggleRoll()">开始点名</button>
+            <button class="btn btn-reset" onclick="resetAll()">重置</button>
+        </div>
+
+        <div class="history-area" id="historyArea" style="margin-top: 22px; display: none;">
+            <div class="history-title">已点名记录:</div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+    </div>
+
+    <div class="groups-area">
+        <div class="groups-title">- 各组成员一览 -</div>
+        <div class="groups-grid" id="groupsGrid"></div>
+    </div>
+
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script>
+    // =============== Canvas 粒子星空背景 ===============
+    (function() {
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        const particles = [];
+        const PARTICLE_COUNT = 120;
+        const CONNECTION_DIST = 140;
+        let mouse = { x: -9999, y: -9999 };
+        let hueShift = 0;
+
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        document.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * W;
+                this.y = Math.random() * H;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.r = Math.random() * 2 + 0.5;
+                this.baseAlpha = Math.random() * 0.5 + 0.2;
+                this.alpha = this.baseAlpha;
+                this.hue = Math.random() * 60 + 190; // 蓝紫色系
+            }
+            update() {
+                // 鼠标吸引
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 200) {
+                    const force = (200 - dist) / 200 * 0.02;
+                    this.vx += dx * force * 0.01;
+                    this.vy += dy * force * 0.01;
+                    this.alpha = Math.min(1, this.baseAlpha + (200 - dist) / 200 * 0.5);
+                } else {
+                    this.alpha += (this.baseAlpha - this.alpha) * 0.05;
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.99;
+                this.vy *= 0.99;
+
+                if (this.x < -20) this.x = W + 20;
+                if (this.x > W + 20) this.x = -20;
+                if (this.y < -20) this.y = H + 20;
+                if (this.y > H + 20) this.y = -20;
+            }
+            draw() {
+                const h = (this.hue + hueShift) % 360;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${h}, 80%, 65%, ${this.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+
+        // 流星
+        const meteors = [];
+        class Meteor {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * W * 1.5;
+                this.y = -10;
+                this.len = Math.random() * 80 + 40;
+                this.speed = Math.random() * 6 + 4;
+                this.alpha = Math.random() * 0.6 + 0.4;
+                this.hue = Math.random() * 60 + 190;
+                this.active = true;
+            }
+            update() {
+                this.x -= this.speed * 0.7;
+                this.y += this.speed;
+                this.alpha -= 0.005;
+                if (this.y > H + 20 || this.alpha <= 0) this.active = false;
+            }
+            draw() {
+                const h = (this.hue + hueShift) % 360;
+                const grad = ctx.createLinearGradient(this.x, this.y, this.x + this.len * 0.7, this.y - this.len);
+                grad.addColorStop(0, `hsla(${h}, 80%, 70%, ${this.alpha})`);
+                grad.addColorStop(1, `hsla(${h}, 80%, 70%, 0)`);
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + this.len * 0.7, this.y - this.len);
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(5, 5, 8, 0.15)';
+            ctx.fillRect(0, 0, W, H);
+
+            hueShift += 0.15;
+
+            // 粒子
+            for (const p of particles) { p.update(); p.draw(); }
+
+            // 连线
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < CONNECTION_DIST) {
+                        const alpha = (1 - dist / CONNECTION_DIST) * 0.15;
+                        const h = ((particles[i].hue + particles[j].hue) / 2 + hueShift) % 360;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `hsla(${h}, 70%, 55%, ${alpha})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // 流星
+            if (Math.random() < 0.015) meteors.push(new Meteor());
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                meteors[i].update();
+                meteors[i].draw();
+                if (!meteors[i].active) meteors.splice(i, 1);
+            }
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // 暴露加速接口给点名动画用
+        window.bgSetIntensity = function(level) {
+            // 0 = normal, 1 = max
+            for (const p of particles) {
+                p.vx += (Math.random() - 0.5) * level * 3;
+                p.vy += (Math.random() - 0.5) * level * 3;
+            }
+        };
+        window.bgBurst = function() {
+            for (let i = 0; i < 8; i++) meteors.push(new Meteor());
+            for (const p of particles) {
+                p.vx += (Math.random() - 0.5) * 6;
+                p.vy += (Math.random() - 0.5) * 6;
+                p.alpha = 1;
+            }
+        };
+    })();
+
+    // =============== 点名逻辑 ===============
+    const groups = {
+        '第一组': ['黄xx'],
+        '第二组': ['王xxxx'],
+        '第三组': ['李xx'],
+        '第四组': ['李超xx'],
+        '第五组': ['谢琪xx'],
+        '第六组': ['宋星xx'],
+        '第七组': ['陶健xx'],
+        '第八组': ['黄*']
+    };
+
+    const excludeMembers = [];
+
+    let allMembers = [];
+    for (const [group, members] of Object.entries(groups)) {
+        for (const name of members) {
+            if (!excludeMembers.includes(name)) {
+                allMembers.push({ group, name });
+            }
+        }
+    }
+
+    let isRolling = false;
+    let rollTimer = null;
+    let calledMembers = [];
+    let history = [];
+
+    const displayBox = document.getElementById('displayBox');
+    const displayGroup = document.getElementById('displayGroup');
+    const displayName = document.getElementById('displayName');
+    const btnStart = document.getElementById('btnStart');
+    const historyArea = document.getElementById('historyArea');
+    const historyList = document.getElementById('historyList');
+    const statsEl = document.getElementById('stats');
+
+    function initGroupCards() {
+        const grid = document.getElementById('groupsGrid');
+        grid.innerHTML = '';
+        for (const [groupName, members] of Object.entries(groups)) {
+            const card = document.createElement('div');
+            card.className = 'group-card';
+            card.id = 'card-' + groupName;
+            const title = document.createElement('div');
+            title.className = 'group-card-title';
+            title.textContent = groupName;
+            const membersDiv = document.createElement('div');
+            membersDiv.className = 'group-card-members';
+            for (const name of members) {
+                const tag = document.createElement('span');
+                tag.className = 'member-tag';
+                if (excludeMembers.includes(name)) tag.classList.add('excluded');
+                tag.id = 'tag-' + groupName + '-' + name;
+                tag.textContent = name;
+                membersDiv.appendChild(tag);
+            }
+            card.appendChild(title);
+            card.appendChild(membersDiv);
+            grid.appendChild(card);
+        }
+    }
+
+    function getAvailableMembers() {
+        return allMembers.filter(m => !calledMembers.some(c => c.group === m.group && c.name === m.name));
+    }
+
+    function updateStats() {
+        const available = getAvailableMembers();
+        statsEl.textContent = `共 ${allMembers.length} 人 | 已点名 ${calledMembers.length} 人 | 剩余 ${available.length} 人`;
+    }
+
+    function toggleRoll() {
+        if (isRolling) return;
+        startRoll();
+    }
+
+    function startRoll() {
+        const available = getAvailableMembers();
+        if (available.length === 0) {
+            displayGroup.textContent = '';
+            displayName.innerHTML = '<span class="placeholder-text">所有人员已点名完毕</span>';
+            return;
+        }
+
+        isRolling = true;
+        btnStart.textContent = '抽选中...';
+        btnStart.classList.add('rolling');
+        btnStart.style.pointerEvents = 'none';
+        displayBox.classList.add('rolling');
+        displayBox.classList.remove('result');
+        displayName.classList.remove('result-name');
+        displayName.classList.add('glitch');
+        displayName.classList.remove('decel');
+        displayGroup.classList.remove('highlight');
+
+        document.querySelectorAll('.group-card.active').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.member-tag.selected').forEach(el => el.classList.remove('selected'));
+
+        const finalPick = available[Math.floor(Math.random() * available.length)];
+
+        const totalDuration = 6000;
+        const fastPhase = 3200;
+        const startTime = Date.now();
+
+        // 背景粒子加速
+        window.bgSetIntensity(0.4);
+
+        function roll() {
+            const elapsed = Date.now() - startTime;
+            const random = available[Math.floor(Math.random() * available.length)];
+            displayGroup.textContent = random.group;
+            displayName.textContent = random.name;
+
+            if (elapsed < fastPhase) {
+                // 快速阶段
+                if (elapsed > fastPhase * 0.5) {
+                    window.bgSetIntensity(0.15);
+                }
+                rollTimer = setTimeout(roll, 45 + Math.random() * 15);
+            } else if (elapsed < totalDuration - 500) {
+                // 减速阶段 - 切换为减速视觉
+                displayName.classList.remove('glitch');
+                displayName.classList.add('decel');
+                const progress = (elapsed - fastPhase) / (totalDuration - fastPhase - 500);
+                const speed = 60 + progress * 400;
+                rollTimer = setTimeout(roll, speed);
+            } else {
+                // 定格
+                displayName.classList.remove('glitch', 'decel');
+                showResult(finalPick);
+            }
+        }
+        roll();
+    }
+
+    function showResult(member) {
+        // 背景爆发
+        window.bgBurst();
+
+        displayGroup.textContent = member.group;
+        displayGroup.classList.add('highlight');
+        displayName.textContent = member.name;
+        displayName.classList.add('result-name');
+        displayBox.classList.remove('rolling');
+        displayBox.classList.add('result');
+
+        btnStart.textContent = '开始点名';
+        btnStart.classList.remove('rolling');
+        btnStart.style.pointerEvents = '';
+        isRolling = false;
+
+        calledMembers.push(member);
+        history.push(member);
+
+        const tag = document.getElementById('tag-' + member.group + '-' + member.name);
+        if (tag) tag.classList.add('selected');
+
+        document.querySelectorAll('.group-card.active').forEach(el => el.classList.remove('active'));
+        const card = document.getElementById('card-' + member.group);
+        if (card) card.classList.add('active');
+
+        updateHistory();
+        updateStats();
+
+        calledMembers.forEach(m => {
+            const t = document.getElementById('tag-' + m.group + '-' + m.name);
+            if (t && !(m.group === member.group && m.name === member.name)) {
+                t.classList.remove('selected');
+                t.classList.add('called');
+            }
+        });
+
+        // 能量环
+        spawnEnergyRings();
+        // 撒花爆炸
+        launchConfetti();
+    }
+
+    // 能量环效果
+    function spawnEnergyRings() {
+        const box = displayBox.getBoundingClientRect();
+        const cx = box.left + box.width / 2;
+        const cy = box.top + box.height / 2;
+        const colors = ['rgba(255,215,0,0.6)', 'rgba(255,45,149,0.4)', 'rgba(0,212,255,0.4)'];
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                const ring = document.createElement('div');
+                ring.className = 'energy-ring';
+                ring.style.left = (cx - 40) + 'px';
+                ring.style.top = (cy - 40) + 'px';
+                ring.style.width = '80px';
+                ring.style.height = '80px';
+                ring.style.borderColor = colors[i];
+                document.getElementById('confettiContainer').appendChild(ring);
+                setTimeout(() => ring.remove(), 900);
+            }, i * 200);
+        }
+    }
+
+    function launchConfetti() {
+        const container = document.getElementById('confettiContainer');
+        const colors = ['#ffd700', '#ff2d95', '#00d4ff', '#7b2ff7', '#06d6a0', '#ff6b6b', '#f4a261'];
+        const shapes = ['circle', 'rect', 'star'];
+
+        for (let i = 0; i < 100; i++) {
+            const el = document.createElement('div');
+            const size = Math.random() * 10 + 4;
+            const shape = shapes[Math.floor(Math.random() * shapes.length)];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const startX = 40 + Math.random() * 20;
+            const drift = (Math.random() - 0.5) * 60;
+            const dur = Math.random() * 2 + 1.5;
+            const delay = Math.random() * 0.4;
+
+            el.style.cssText = `
+                position: absolute;
+                left: ${startX}%;
+                top: -10px;
+                width: ${size}px;
+                height: ${size}px;
+                background: ${color};
+                border-radius: ${shape === 'circle' ? '50%' : shape === 'star' ? '2px' : '1px'};
+                opacity: 0;
+                pointer-events: none;
+                animation: confettiDrop ${dur}s ease-in ${delay}s forwards;
+                --drift: ${drift}vw;
+                ${shape === 'rect' ? `transform: rotate(${Math.random()*360}deg);` : ''}
+            `;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), (dur + delay) * 1000 + 200);
+        }
+
+        // 动态注入关键帧（只需要一次）
+        if (!document.getElementById('confettiKeyframes')) {
+            const style = document.createElement('style');
+            style.id = 'confettiKeyframes';
+            style.textContent = `
+                @keyframes confettiDrop {
+                    0% { transform: translateY(0) translateX(0) rotate(0deg) scale(1); opacity: 1; }
+                    30% { opacity: 1; }
+                    100% { transform: translateY(100vh) translateX(var(--drift)) rotate(${720 + Math.random()*360}deg) scale(0.3); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    function updateHistory() {
+        if (history.length === 0) { historyArea.style.display = 'none'; return; }
+        historyArea.style.display = 'block';
+        historyList.innerHTML = '';
+        history.forEach((m, i) => {
+            const item = document.createElement('span');
+            item.className = 'history-item';
+            item.textContent = `${i + 1}. ${m.group} - ${m.name}`;
+            historyList.appendChild(item);
+        });
+    }
+
+    function resetAll() {
+        isRolling = false;
+        clearTimeout(rollTimer);
+        calledMembers = [];
+        history = [];
+
+        displayBox.classList.remove('rolling', 'result');
+        displayGroup.textContent = '';
+        displayGroup.classList.remove('highlight');
+        displayName.innerHTML = '<span class="placeholder-text">点击开始点名</span>';
+        displayName.classList.remove('result-name', 'glitch', 'decel');
+
+        btnStart.textContent = '开始点名';
+        btnStart.classList.remove('rolling');
+        btnStart.style.pointerEvents = '';
+        isRolling = false;
+
+        historyArea.style.display = 'none';
+        historyList.innerHTML = '';
+
+        document.querySelectorAll('.member-tag').forEach(el => el.classList.remove('selected', 'called'));
+        document.querySelectorAll('.group-card').forEach(el => el.classList.remove('active'));
+
+        updateStats();
+    }
+
+    initGroupCards();
+    updateStats();
+    </script>
+</body>
+</html>
