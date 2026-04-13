@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Agent Skills Hub - AI 技能热门推荐榜</title>
+  <meta name="description" content="精选来自 GitHub 最热门的 AI Agent Skills、MCP 服务器与开发工具推荐榜" />
+  <style>
+    /* ========== Design System Tokens ========== */
+    :root {
+      --bg-deep: #080b14;
+      --bg-surface: #0d1121;
+      --bg-card: #111728;
+      --bg-card-hover: #161d33;
+      --bg-elevated: #1a2240;
+
+      --text-primary: #e8ecf4;
+      --text-secondary: #8892a8;
+      --text-muted: #5a6478;
+
+      --accent-purple: #7c5cfc;
+      --accent-purple-glow: #a78bfa;
+      --accent-cyan: #22d3ee;
+      --accent-cyan-glow: #67e8f9;
+      --accent-orange: #fb923c;
+
+      --border-subtle: rgba(138, 148, 178, 0.1);
+      --border-active: rgba(124, 92, 252, 0.3);
+
+      --gradient-hero: linear-gradient(135deg, rgba(124, 92, 252, 0.15), rgba(34, 211, 238, 0.08));
+      --gradient-primary: linear-gradient(135deg, #7c5cfc, #a855f7);
+      --gradient-card: linear-gradient(160deg, #111728, #0d1121);
+      --gradient-card-hover: linear-gradient(160deg, #161d33, #111728);
+
+      --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 8px 32px rgba(124, 92, 252, 0.15);
+      --shadow-glow: 0 0 24px rgba(124, 92, 252, 0.25);
+
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-pill: 100px;
+
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ========== Reset & Base ========== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    ::-webkit-scrollbar { width: 0; height: 0; }
+
+    /* ========== Background ========== */
+    .bg-mesh {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(124, 92, 252, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 25%, rgba(34, 211, 238, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(168, 85, 247, 0.03) 0%, transparent 50%);
+    }
+    .bg-grid {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.12;
+      background-image:
+        linear-gradient(rgba(138,148,178,0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(138,148,178,0.15) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+    .content-wrapper { position: relative; z-index: 1; }
+
+    /* ========== Hero ========== */
+    .hero { position: relative; padding: 48px 20px 32px; overflow: hidden; }
+    .hero::before { content:''; position:absolute; inset:0; background:var(--gradient-hero); pointer-events:none; }
+    .hero::after { content:''; position:absolute; bottom:0; left:0; right:0; height:80px; background:linear-gradient(to bottom,transparent,var(--bg-deep)); pointer-events:none; }
+
+    .hero-badge {
+      display:inline-flex; align-items:center; gap:6px; padding:5px 14px;
+      border-radius:var(--radius-pill); font-size:12px; font-weight:500;
+      background:rgba(124,92,252,0.12); border:1px solid rgba(124,92,252,0.2);
+      color:var(--accent-purple-glow); margin-bottom:20px;
+    }
+    .hero-badge svg { width:14px; height:14px; }
+    .hero-content { position:relative; z-index:1; text-align:center; }
+
+    .hero h1 { font-size:32px; font-weight:800; letter-spacing:-0.5px; line-height:1.2; margin-bottom:12px; }
+    .hero h1 .gradient-text {
+      background:var(--gradient-primary); -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .hero h1 .sub-title { display:block; font-size:24px; color:var(--text-primary); -webkit-text-fill-color:var(--text-primary); margin-top:4px; }
+
+    .hero-desc { font-size:14px; color:var(--text-secondary); max-width:320px; margin:0 auto 28px; line-height:1.6; }
+
+    .hero-stats { display:flex; justify-content:center; gap:32px; }
+    .stat-item { text-align:center; }
+    .stat-icon { display:inline-flex; align-items:center; gap:4px; color:var(--accent-purple); margin-bottom:2px; }
+    .stat-icon svg { width:14px; height:14px; }
+    .stat-value { font-size:20px; font-weight:700; color:var(--text-primary); }
+    .stat-label { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+    /* ========== Category Nav ========== */
+    .category-nav {
+      position:sticky; top:0; z-index:30;
+      background:rgba(8,11,20,0.85); backdrop-filter:blur(20px) saturate(180%);
+      -webkit-backdrop-filter:blur(20px) saturate(180%);
+      border-bottom:1px solid var(--border-subtle); padding:12px 0;
+    }
+    .category-scroll {
+      display:flex; gap:8px; padding:0 16px; overflow-x:auto;
+      -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    }
+    .category-scroll::-webkit-scrollbar { display:none; }
+
+    .cat-btn {
+      flex-shrink:0; display:inline-flex; align-items:center; gap:5px;
+      padding:6px 14px; border-radius:var(--radius-pill); border:none; outline:none;
+      font-size:12px; font-weight:500; font-family:var(--font-sans); cursor:pointer;
+      transition:var(--transition); background:var(--bg-elevated);
+      color:var(--text-secondary); white-space:nowrap;
+    }
+    .cat-btn:active { transform:scale(0.96); }
+    .cat-btn.active { background:var(--gradient-primary); color:#fff; box-shadow:var(--shadow-glow); }
+    .cat-btn:not(.active):hover { background:var(--bg-card-hover); color:var(--text-primary); }
+
+    /* ========== Search ========== */
+    .search-wrapper { padding:12px 16px; }
+    .search-box {
+      display:flex; align-items:center; gap:8px; padding:10px 14px;
+      border-radius:var(--radius); background:var(--bg-surface);
+      border:1px solid var(--border-subtle); transition:var(--transition);
+    }
+    .search-box:focus-within { border-color:var(--border-active); box-shadow:0 0 0 3px rgba(124,92,252,0.08); }
+    .search-box svg { width:16px; height:16px; color:var(--text-muted); flex-shrink:0; }
+    .search-box input {
+      flex:1; border:none; outline:none; background:transparent;
+      font-size:14px; font-family:var(--font-sans); color:var(--text-primary);
+    }
+    .search-box input::placeholder { color:var(--text-muted); }
+    .search-clear {
+      flex-shrink:0; background:none; border:none; cursor:pointer;
+      color:var(--text-muted); display:none; padding:2px;
+    }
+    .search-clear.visible { display:block; }
+    .search-clear:hover { color:var(--text-primary); }
+
+    /* ========== List ========== */
+    .list-section { padding:4px 16px 24px; }
+    .list-header { display:flex; align-items:center; justify-content:space-between; padding:8px 0 12px; }
+    .list-count { font-size:12px; color:var(--text-muted); }
+    .list-count strong { color:var(--text-primary); font-weight:600; }
+    .cards-container { display:flex; flex-direction:column; gap:12px; }
+
+    /* ========== Card ========== */
+    .skill-card {
+      display:block; border-radius:var(--radius); border:1px solid var(--border-subtle);
+      background:var(--gradient-card); padding:16px; transition:var(--transition);
+      box-shadow:var(--shadow-card); animation:slideUp 0.4s ease-out both;
+    }
+    .skill-card:hover, .skill-card:active {
+      background:var(--gradient-card-hover); border-color:var(--border-active);
+      box-shadow:var(--shadow-hover); transform:translateY(-1px);
+    }
+    .card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; }
+    .card-top-left { display:flex; align-items:center; gap:8px; min-width:0; flex:1; }
+
+    .card-rank {
+      flex-shrink:0; width:24px; height:24px; border-radius:6px;
+      background:var(--bg-elevated); display:flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:700; color:var(--text-muted);
+    }
+    .card-rank.top3 { background:var(--gradient-primary); color:#fff; }
+
+    .card-name {
+      font-size:14px; font-weight:600; color:var(--text-primary);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:var(--transition);
+    }
+    .skill-card:hover .card-name { color:var(--accent-purple-glow); }
+
+    .card-hot { flex-shrink:0; display:inline-flex; align-items:center; animation:pulse 2s ease-in-out infinite; }
+    .card-hot svg { width:14px; height:14px; color:var(--accent-orange); }
+
+    .card-link-icon { flex-shrink:0; color:var(--text-muted); transition:var(--transition); }
+    .card-link-icon svg { width:14px; height:14px; }
+    .skill-card:hover .card-link-icon { color:var(--accent-purple); }
+
+    .card-fullname {
+      font-size:11px; font-family:var(--font-mono); color:var(--text-muted);
+      margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .card-desc {
+      font-size:12px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .card-footer { display:flex; align-items:center; justify-content:space-between; }
+    .card-tags { display:flex; gap:6px; overflow:hidden; flex:1; margin-right:8px; }
+    .card-tag {
+      flex-shrink:0; padding:2px 8px; border-radius:4px; font-size:10px;
+      font-weight:500; background:var(--bg-elevated); color:var(--text-muted);
+    }
+    .card-stars { flex-shrink:0; display:flex; align-items:center; gap:4px; }
+    .card-stars svg { width:12px; height:12px; color:var(--accent-cyan); }
+    .card-stars span { font-size:12px; font-weight:600; color:var(--accent-cyan); }
+
+    /* ========== Empty ========== */
+    .empty-state { text-align:center; padding:60px 20px; }
+    .empty-state svg { width:48px; height:48px; color:var(--text-muted); opacity:0.4; margin-bottom:12px; }
+    .empty-state p { font-size:14px; color:var(--text-muted); }
+
+    /* ========== Footer ========== */
+    .footer { border-top:1px solid var(--border-subtle); padding:24px 16px; margin-top:32px; text-align:center; }
+    .footer p { font-size:12px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:4px; }
+    .footer p svg { width:12px; height:12px; color:#ef4444; }
+    .footer .footer-sub { font-size:10px; color:var(--text-muted); opacity:0.5; margin-top:4px; }
+
+    /* ========== Back to Top ========== */
+    .back-to-top {
+      position:fixed; bottom:24px; right:16px; z-index:40; width:40px; height:40px;
+      border-radius:50%; background:var(--gradient-primary); border:none; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:var(--shadow-glow); transition:var(--transition);
+      opacity:0; transform:translateY(20px); pointer-events:none;
+    }
+    .back-to-top.visible { opacity:1; transform:translateY(0); pointer-events:auto; }
+    .back-to-top svg { width:20px; height:20px; color:#fff; }
+    .back-to-top:active { transform:scale(0.9); }
+
+    /* ========== Animations ========== */
+    @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+  </style>
+</head>
+<body>
+  <div class="bg-mesh"></div>
+  <div class="bg-grid"></div>
+
+  <div class="content-wrapper">
+    <!-- Hero -->
+    <header class="hero">
+      <div class="hero-content">
+        <div style="text-align:center">
+          <span class="hero-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.272 1.272L21 12l-5.813 1.912a2 2 0 00-1.272 1.272L12 21l-1.912-5.813a2 2 0 00-1.272-1.272L3 12l5.813-1.912a2 2 0 001.272-1.272z"/></svg>
+            2026 热门推荐
+          </span>
+        </div>
+        <h1>
+          <span class="gradient-text">Agent Skills</span>
+          <span class="sub-title">热门推荐榜</span>
+        </h1>
+        <p class="hero-desc">精选来自 GitHub 最火的 AI Agent Skills、MCP 服务器与开发工具</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <span class="stat-value">35+</span>
+            </div>
+            <div class="stat-label">精选项目</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              <span class="stat-value">7</span>
+            </div>
+            <div class="stat-label">大分类</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.272 1.272L21 12l-5.813 1.912a2 2 0 00-1.272 1.272L12 21l-1.912-5.813a2 2 0 00-1.272-1.272L3 12l5.813-1.912a2 2 0 001.272-1.272z"/></svg>
+              <span class="stat-value">500k+</span>
+            </div>
+            <div class="stat-label">总 Stars</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Category Filter -->
+    <nav class="category-nav" id="categoryNav">
+      <div class="category-scroll" id="categoryScroll"></div>
+    </nav>
+
+    <!-- Search -->
+    <div class="search-wrapper">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="搜索项目名称、描述或标签..." />
+        <button class="search-clear" id="searchClear" onclick="clearSearch()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- List -->
+    <section class="list-section">
+      <div class="list-header">
+        <span class="list-count" id="listCount"></span>
+      </div>
+      <div class="cards-container" id="cardsContainer"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Made with <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> for the AI community</p>
+      <p class="footer-sub">Data sourced from GitHub &middot; Updated 2026.04</p>
+    </footer>
+  </div>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+  </button>
+
+  <script>
+    // ========== DATA ==========
+    var categories = [
+      { id:"all", label:"全部", icon:"🔥" },
+      { id:"agent-skills", label:"Agent Skills 合集", icon:"🧩" },
+      { id:"mcp-servers", label:"MCP 服务器", icon:"🔌" },
+      { id:"ai-agents", label:"AI Agents 框架", icon:"🤖" },
+      { id:"cursor-rules", label:"Cursor Rules", icon:"📐" },
+      { id:"copilot", label:"Copilot / Gemini", icon:"✈️" },
+      { id:"tools", label:"工具 & CLI", icon:"🛠️" },
+    ];
+
+    var skills = [
+      { name:"VoltAgent/awesome-agent-skills", desc:"1000+ 精选 Agent Skills 合集，支持 Claude、Codex、Gemini CLI、Cursor 等多平台", cat:"agent-skills", stars:"4.2k", url:"https://github.com/VoltAgent/awesome-agent-skills", tags:["Claude","Codex","Gemini","Cursor"], hot:true },
+      { name:"ComposioHQ/awesome-claude-skills", desc:"最大的 Claude Skills 列表，包含高质量 Skills、资源与教程汇总", cat:"agent-skills", stars:"3.8k", url:"https://github.com/ComposioHQ/awesome-claude-skills", tags:["Claude","Skills"], hot:true },
+      { name:"sickn33/antigravity-awesome-skills", desc:"1400+ 可安装的跨平台 Agentic Skills 库，支持 Claude Code/Cursor", cat:"agent-skills", stars:"2.5k", url:"https://github.com/sickn33/antigravity-awesome-skills", tags:["可安装","跨平台","1400+"], hot:true },
+      { name:"philipbankier/awesome-agent-skills", desc:"精心策划的 Skills、Tools 和 Plugins 目录，涵盖 Claude Code 等 AI 编码代理", cat:"agent-skills", stars:"1.9k", url:"https://github.com/philipbankier/awesome-agent-skills", tags:["策划精选","Plugins"] },
+      { name:"travisvn/awesome-claude-skills", desc:"Claude Code 工作流 Skills 集合，专注于提升开发效率的精选资源", cat:"agent-skills", stars:"1.6k", url:"https://github.com/travisvn/awesome-claude-skills", tags:["Claude Code","工作流"] },
+      { name:"rohitg00/awesome-claude-code-toolkit", desc:"135 个代理 + 35 个 Skills + 42 个命令 + 120 个插件的全面工具箱", cat:"agent-skills", stars:"1.4k", url:"https://github.com/rohitg00/awesome-claude-code-toolkit", tags:["工具箱","全面"] },
+      { name:"heilcheng/awesome-agent-skills", desc:"Skills + Tools + 教程整合，支持 Claude/Codex/Copilot 等主流平台", cat:"agent-skills", stars:"1.2k", url:"https://github.com/heilcheng/awesome-agent-skills", tags:["教程","多平台"] },
+      { name:"hesreallyhim/awesome-claude-code", desc:"全面的 Claude 生态系统：Skills、Hooks、Plugins 一站式收录", cat:"agent-skills", stars:"980", url:"https://github.com/hesreallyhim/awesome-claude-code", tags:["生态系统","Hooks"] },
+      { name:"K-Dense-AI/claude-scientific-skills", desc:"面向科研、工程、金融领域的专业 Claude Skills 集合", cat:"agent-skills", stars:"720", url:"https://github.com/K-Dense-AI/claude-scientific-skills", tags:["科研","金融","工程"] },
+      { name:"skillmatic-ai/awesome-agent-skills", desc:"架构导向的 Skill 资源库，注重技能的系统化组织与架构设计", cat:"agent-skills", stars:"650", url:"https://github.com/skillmatic-ai/awesome-agent-skills", tags:["架构","系统化"] },
+
+      { name:"punkpeye/awesome-mcp-servers", desc:"1000+ MCP 服务器合集，最全面的 Model Context Protocol 服务器列表", cat:"mcp-servers", stars:"38k", url:"https://github.com/punkpeye/awesome-mcp-servers", tags:["1000+","最全面"], hot:true },
+      { name:"modelcontextprotocol/servers", desc:"MCP 官方参考实现，包含文件系统、GitHub、Google 等标准服务器", cat:"mcp-servers", stars:"18k", url:"https://github.com/modelcontextprotocol/servers", tags:["官方","参考实现"], hot:true },
+      { name:"appcypher/awesome-mcp-servers", desc:"按类别清晰组织的 MCP 服务器列表，分类细致易于查找", cat:"mcp-servers", stars:"9.5k", url:"https://github.com/appcypher/awesome-mcp-servers", tags:["分类清晰","易查找"] },
+      { name:"wong2/awesome-mcp-servers", desc:"最早期的 MCP 服务器列表之一，收录经典与稳定的服务器实现", cat:"mcp-servers", stars:"5.2k", url:"https://github.com/wong2/awesome-mcp-servers", tags:["经典","早期"] },
+      { name:"tolkonepiu/best-of-mcp-servers", desc:"450+ MCP 服务器精选，按评分排序并提供质量评级", cat:"mcp-servers", stars:"2.1k", url:"https://github.com/tolkonepiu/best-of-mcp-servers", tags:["评分排序","质量评级"] },
+      { name:"rohitg00/awesome-devops-mcp-servers", desc:"DevOps 专用 MCP 服务器集合，覆盖 CI/CD、容器化等场景", cat:"mcp-servers", stars:"1.3k", url:"https://github.com/rohitg00/awesome-devops-mcp-servers", tags:["DevOps","CI/CD"] },
+      { name:"toolsdk-ai/toolsdk-mcp-registry", desc:"机器可读的 JSON 格式 MCP 注册表，支持 OAuth2.1 认证", cat:"mcp-servers", stars:"890", url:"https://github.com/toolsdk-ai/toolsdk-mcp-registry", tags:["JSON Registry","OAuth2.1"] },
+
+      { name:"Significant-Gravitas/AutoGPT", desc:"自主 AI 代理平台，可构建、部署和运行持续工作的 AI 代理", cat:"ai-agents", stars:"172k", url:"https://github.com/Significant-Gravitas/AutoGPT", tags:["自主代理","平台"], hot:true },
+      { name:"langchain-ai/langchain", desc:"LLM 应用开发核心框架，提供链式调用、代理、工具等完整生态", cat:"ai-agents", stars:"102k", url:"https://github.com/langchain-ai/langchain", tags:["核心框架","链式调用"], hot:true },
+      { name:"Shubhamsaboo/awesome-llm-apps", desc:"LLM 应用集合：RAG、语音代理、多模态应用等实战项目精选", cat:"ai-agents", stars:"18k", url:"https://github.com/Shubhamsaboo/awesome-llm-apps", tags:["RAG","语音代理","实战"] },
+      { name:"e2b-dev/awesome-ai-agents", desc:"AI 自主代理的元列表，按类别结构化组织，AI Agents 领域的标杆收录", cat:"ai-agents", stars:"12k", url:"https://github.com/e2b-dev/awesome-ai-agents", tags:["元列表","标杆"], hot:true },
+      { name:"crewAIInc/crewAI-tools", desc:"CrewAI 官方工具集，用于构建多代理协作系统的标准化工具", cat:"ai-agents", stars:"8.5k", url:"https://github.com/crewAIInc/crewAI-tools", tags:["多代理协作","官方"] },
+      { name:"kyrolabs/awesome-agents", desc:"开源 AI 工具和产品列表，包含框架、平台和垂直解决方案", cat:"ai-agents", stars:"3.8k", url:"https://github.com/kyrolabs/awesome-agents", tags:["开源","垂直方案"] },
+      { name:"jim-schwoebel/awesome_ai_agents", desc:"1500+ AI 代理收录，涵盖各领域各平台的全面资源库", cat:"ai-agents", stars:"2.8k", url:"https://github.com/jim-schwoebel/awesome_ai_agents", tags:["1500+","全面"] },
+
+      { name:"PatrickJS/awesome-cursorrules", desc:"500+ Cursor Rules 收录，提升 AI 编码助手响应质量的规则集", cat:"cursor-rules", stars:"15k", url:"https://github.com/PatrickJS/awesome-cursorrules", tags:["500+ Rules","质量提升"], hot:true },
+      { name:"pontusab/cursor.directory", desc:"Cursor.directory 开源代码库，提供可视化浏览和管理 Cursor 规则", cat:"cursor-rules", stars:"5.2k", url:"https://github.com/pontusab/cursor.directory", tags:["可视化","目录站"] },
+      { name:"sanjeed5/awesome-cursor-rules-mdc", desc:"新 .mdc 格式的 Cursor Rules 收录，适配最新 Cursor 版本", cat:"cursor-rules", stars:"1.8k", url:"https://github.com/sanjeed5/awesome-cursor-rules-mdc", tags:[".mdc 格式","最新"] },
+      { name:"ichoosetoaccept/awesome-windsurf", desc:"Windsurf IDE 的资源、规则和记忆配置收录", cat:"cursor-rules", stars:"1.2k", url:"https://github.com/ichoosetoaccept/awesome-windsurf", tags:["Windsurf","规则"] },
+
+      { name:"google-gemini/gemini-cli", desc:"Google 官方 Gemini CLI，支持终端内 AI 对话和代码生成", cat:"copilot", stars:"25k", url:"https://github.com/google-gemini/gemini-cli", tags:["官方","Gemini"], hot:true },
+      { name:"github/awesome-copilot", desc:"GitHub 官方 Copilot 资源合集，包含扩展、Skills 和最佳实践", cat:"copilot", stars:"3.5k", url:"https://github.com/github/awesome-copilot", tags:["官方","Copilot"] },
+      { name:"VoltAgent/awesome-openclaw-skills", desc:"5400+ OpenClaw Skills 目录，覆盖 Web、后端、数据等各类开发场景", cat:"copilot", stars:"2.1k", url:"https://github.com/VoltAgent/awesome-openclaw-skills", tags:["OpenClaw","5400+"] },
+      { name:"Piebald-AI/awesome-gemini-cli", desc:"Gemini CLI 精选工具和扩展集合，提升 Gemini 使用体验", cat:"copilot", stars:"1.5k", url:"https://github.com/Piebald-AI/awesome-gemini-cli", tags:["扩展","工具"] },
+
+      { name:"n8n-io/n8n", desc:"开源工作流自动化平台，可视化构建 AI Agent 自动化流水线", cat:"tools", stars:"68k", url:"https://github.com/n8n-io/n8n", tags:["自动化","可视化"], hot:true },
+      { name:"Karanjot786/agent-skills-cli", desc:"通用 CLI 工具，管理 40,000+ Agent Skills 的安装和配置", cat:"tools", stars:"1.8k", url:"https://github.com/Karanjot786/agent-skills-cli", tags:["CLI","包管理"] },
+      { name:"QAInsights/awesome-ai-tools", desc:"AI 驱动的编码助手分类参考，涵盖代码生成、审查、测试等工具", cat:"tools", stars:"1.5k", url:"https://github.com/QAInsights/awesome-ai-tools", tags:["编码助手","分类参考"] },
+      { name:"agentskills.io", desc:"社区驱动的 Agent Skills 规范站点，提供标准化技能定义", cat:"tools", stars:"800", url:"https://github.com/agentskills/agentskills", tags:["社区","规范"] },
+      { name:"agent-skills.cc", desc:"按热度排序的 Claude Skills 发现平台，可按 Stars/Forks 浏览", cat:"tools", stars:"600", url:"https://agent-skills.cc/claude-skills/hot", tags:["发现平台","热度排序"] },
+    ];
+
+    // ========== STATE ==========
+    var activeCat = "all";
+    var searchQuery = "";
+
+    // ========== SVG Icons ==========
+    var icons = {
+      flame: '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 23c-3.866 0-7-3.134-7-7 0-2.692 1.3-5.086 4-6.686V6c0-.55.45-1 1-1 .32 0 .6.15.78.39C12.5 7.5 14 9 14 11c1.5-1 2.5-3 2.5-5 0-.55.45-1 1-1 .32 0 .6.15.78.39C20.5 8.5 21 11.5 21 14c0 4.97-4.03 9-9 9z"/></svg>',
+      externalLink: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+      star: '<svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+      searchBig: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="48" height="48"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>',
+    };
+
+    function escapeHtml(text) {
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ========== RENDER ==========
+    function renderCategories() {
+      var container = document.getElementById('categoryScroll');
+      container.innerHTML = categories.map(function(c) {
+        return '<button class="cat-btn ' + (c.id === activeCat ? 'active' : '') + '" data-cat="' + c.id + '">' + c.icon + ' ' + c.label + '</button>';
+      }).join('');
+
+      container.querySelectorAll('.cat-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          activeCat = btn.dataset.cat;
+          renderCategories();
+          renderCards();
+        });
+      });
+    }
+
+    function getFiltered() {
+      var result = skills;
+      if (activeCat !== 'all') result = result.filter(function(s) { return s.cat === activeCat; });
+      if (searchQuery.trim()) {
+        var q = searchQuery.toLowerCase();
+        result = result.filter(function(s) {
+          return s.name.toLowerCase().indexOf(q) !== -1 ||
+            s.desc.toLowerCase().indexOf(q) !== -1 ||
+            s.tags.some(function(t) { return t.toLowerCase().indexOf(q) !== -1; });
+        });
+      }
+      return result;
+    }
+
+    function renderCards() {
+      var filtered = getFiltered();
+      var container = document.getElementById('cardsContainer');
+      var countEl = document.getElementById('listCount');
+
+      countEl.innerHTML = '共 <strong>' + filtered.length + '</strong> 个项目';
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state">' + icons.searchBig +
+          '<p>' + (searchQuery ? '未找到与 "' + escapeHtml(searchQuery) + '" 相关的项目' : '该分类暂无项目') + '</p></div>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(function(s, i) {
+        var shortName = s.name.indexOf('/') !== -1 ? s.name.split('/').pop() : s.name;
+        var isTop3 = i < 3;
+        var tagsHtml = s.tags.slice(0, 3).map(function(t) {
+          return '<span class="card-tag">' + escapeHtml(t) + '</span>';
+        }).join('');
+
+        return '<a href="' + s.url + '" target="_blank" rel="noopener noreferrer" class="skill-card" style="animation-delay:' + (i * 50) + 'ms">' +
+          '<div class="card-top">' +
+            '<div class="card-top-left">' +
+              '<span class="card-rank ' + (isTop3 ? 'top3' : '') + '">' + (i + 1) + '</span>' +
+              '<span class="card-name">' + escapeHtml(shortName) + '</span>' +
+              (s.hot ? '<span class="card-hot">' + icons.flame + '</span>' : '') +
+            '</div>' +
+            '<span class="card-link-icon">' + icons.externalLink + '</span>' +
+          '</div>' +
+          '<div class="card-fullname">' + escapeHtml(s.name) + '</div>' +
+          '<div class="card-desc">' + escapeHtml(s.desc) + '</div>' +
+          '<div class="card-footer">' +
+            '<div class="card-tags">' + tagsHtml + '</div>' +
+            '<div class="card-stars">' + icons.star + '<span>' + s.stars + '</span></div>' +
+          '</div>' +
+        '</a>';
+      }).join('');
+    }
+
+    // ========== SEARCH ==========
+    var searchInput = document.getElementById('searchInput');
+    var searchClear = document.getElementById('searchClear');
+
+    searchInput.addEventListener('input', function(e) {
+      searchQuery = e.target.value;
+      searchClear.classList.toggle('visible', searchQuery.length > 0);
+      renderCards();
+    });
+
+    function clearSearch() {
+      searchInput.value = '';
+      searchQuery = '';
+      searchClear.classList.remove('visible');
+      renderCards();
+    }
+
+    // ========== BACK TO TOP ==========
+    var backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', function() {
+      backToTop.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+
+    // ========== INIT ==========
+    renderCategories();
+    renderCards();
+  </script>
+</body>
+</html>
