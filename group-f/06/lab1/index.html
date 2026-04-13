@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文字图片形状排列</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .app-header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: white;
+    }
+
+    .app-header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .app-header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .control-panel {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section h3 {
+      font-size: 1rem;
+      color: #333;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    /* 上传区域 */
+    .upload-area {
+      border: 3px dashed #ccc;
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #fafafa;
+    }
+
+    .upload-area:hover {
+      border-color: #667eea;
+      background: #f0f4ff;
+    }
+
+    .upload-area.dragover {
+      border-color: #667eea;
+      background: #e8eeff;
+      transform: scale(1.02);
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .upload-area p {
+      color: #666;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .upload-hint {
+      font-size: 0.85rem !important;
+      color: #999 !important;
+    }
+
+    /* 图片预览 */
+    .image-preview {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .image-preview img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .clear-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: #e74c3c;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .clear-btn:hover {
+      background: #e74c3c;
+      color: white;
+    }
+
+    /* 文字输入 */
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      resize: vertical;
+      transition: border-color 0.3s;
+      font-family: inherit;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    /* 参数调节 */
+    .parameter {
+      margin-bottom: 16px;
+    }
+
+    .parameter label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .parameter label span {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .parameter input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #e0e0e0;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .parameter input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .parameter input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    }
+
+    .parameter small {
+      display: block;
+      margin-top: 4px;
+      color: #999;
+      font-size: 0.8rem;
+    }
+
+    /* 按钮 */
+    .generate-btn,
+    .download-btn {
+      width: 100%;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .generate-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .generate-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .generate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      margin-top: 16px;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4);
+    }
+
+    /* 预览面板 */
+    .preview-panel {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .preview-panel h3 {
+      font-size: 1.1rem;
+      color: #333;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .canvas-container {
+      min-height: 400px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      position: relative;
+    }
+
+    .canvas-container canvas {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .empty-state {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #999;
+    }
+
+    .empty-state p {
+      font-size: 1.1rem;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+
+      .control-panel {
+        order: 2;
+      }
+
+      .preview-panel {
+        order: 1;
+      }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      .app-header h1 {
+        font-size: 1.8rem;
+      }
+
+      .control-panel,
+      .preview-panel {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1>文字图片形状排列</h1>
+      <p>上传图片，输入文字，生成文字组成的图片效果</p>
+    </header>
+
+    <div class="main-content">
+      <div class="control-panel">
+        <!-- 图片上传区域 -->
+        <div class="section">
+          <h3>1. 上传图片</h3>
+          <div id="uploadSection">
+            <div
+              class="upload-area"
+              id="uploadArea"
+            >
+              <div class="upload-icon">📷</div>
+              <p>点击或拖拽图片到这里</p>
+              <p class="upload-hint">支持 JPG、PNG、GIF 格式</p>
+              <input
+                type="file"
+                id="fileInput"
+                accept="image/*"
+                style="display: none"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- 文字输入区域 -->
+        <div class="section">
+          <h3>2. 输入文字</h3>
+          <textarea
+            id="textInput"
+            placeholder="输入要排列的文字..."
+            rows="4"
+          >在这里输入文字，文字将按照图片形状排列显示</textarea>
+        </div>
+
+        <!-- 参数调节 -->
+        <div class="section">
+          <h3>3. 调整参数</h3>
+          <div class="parameter">
+            <label>
+              字体大小: <span id="fontSizeValue">12px</span>
+            </label>
+            <input
+              type="range"
+              id="fontSize"
+              min="8"
+              max="24"
+              value="12"
+            />
+          </div>
+          <div class="parameter">
+            <label>
+              文字间距: <span id="spacingValue">2px</span>
+            </label>
+            <input
+              type="range"
+              id="spacing"
+              min="0"
+              max="10"
+              value="2"
+            />
+          </div>
+          <div class="parameter">
+            <label>
+              阈值: <span id="thresholdValue">128</span>
+            </label>
+            <input
+              type="range"
+              id="threshold"
+              min="0"
+              max="255"
+              value="128"
+            />
+            <small>数值越小，显示的文字越少</small>
+          </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="section">
+          <button class="generate-btn" id="generateBtn" disabled>
+            请先上传图片
+          </button>
+        </div>
+      </div>
+
+      <!-- 预览区域 -->
+      <div class="preview-panel">
+        <h3>预览效果</h3>
+        <div class="canvas-container" id="canvasContainer">
+          <canvas id="canvas"></canvas>
+          <div class="empty-state" id="emptyState">
+            <p>请先上传图片</p>
+          </div>
+        </div>
+        <button class="download-btn" id="downloadBtn" style="display: none;">
+          下载图片
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 获取DOM元素
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const uploadSection = document.getElementById('uploadSection');
+    const textInput = document.getElementById('textInput');
+    const fontSizeInput = document.getElementById('fontSize');
+    const spacingInput = document.getElementById('spacing');
+    const thresholdInput = document.getElementById('threshold');
+    const fontSizeValue = document.getElementById('fontSizeValue');
+    const spacingValue = document.getElementById('spacingValue');
+    const thresholdValue = document.getElementById('thresholdValue');
+    const generateBtn = document.getElementById('generateBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const canvas = document.getElementById('canvas');
+    const emptyState = document.getElementById('emptyState');
+    const ctx = canvas.getContext('2d');
+
+    let currentImage = null;
+    let isProcessing = false;
+
+    // 更新参数显示
+    fontSizeInput.addEventListener('input', () => {
+      fontSizeValue.textContent = fontSizeInput.value + 'px';
+    });
+
+    spacingInput.addEventListener('input', () => {
+      spacingValue.textContent = spacingInput.value + 'px';
+    });
+
+    thresholdInput.addEventListener('input', () => {
+      thresholdValue.textContent = thresholdInput.value;
+    });
+
+    // 点击上传
+    uploadArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    // 文件选择
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        handleImageFile(file);
+      }
+    });
+
+    // 拖拽上传
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleImageFile(file);
+      }
+    });
+
+    // 处理图片文件
+    function handleImageFile(file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          currentImage = img;
+          showImagePreview(img);
+          generateBtn.disabled = false;
+          generateBtn.textContent = '生成效果';
+          emptyState.style.display = 'none';
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 显示图片预览
+    function showImagePreview(img) {
+      const previewDiv = document.createElement('div');
+      previewDiv.className = 'image-preview';
+      previewDiv.innerHTML = `
+        <img src="${img.src}" alt="预览">
+        <button class="clear-btn" onclick="clearImage()">删除图片</button>
+      `;
+      uploadSection.innerHTML = '';
+      uploadSection.appendChild(previewDiv);
+    }
+
+    // 清除图片
+    window.clearImage = function() {
+      currentImage = null;
+      uploadSection.innerHTML = `
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📷</div>
+          <p>点击或拖拽图片到这里</p>
+          <p class="upload-hint">支持 JPG、PNG、GIF 格式</p>
+          <input type="file" id="fileInput" accept="image/*" style="display: none">
+        </div>
+      `;
+      
+      // 重新绑定事件
+      const newUploadArea = document.getElementById('uploadArea');
+      const newFileInput = document.getElementById('fileInput');
+      
+      newUploadArea.addEventListener('click', () => newFileInput.click());
+      newFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleImageFile(file);
+      });
+      newUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        newUploadArea.classList.add('dragover');
+      });
+      newUploadArea.addEventListener('dragleave', () => {
+        newUploadArea.classList.remove('dragover');
+      });
+      newUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        newUploadArea.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          handleImageFile(file);
+        }
+      });
+
+      generateBtn.disabled = true;
+      generateBtn.textContent = '请先上传图片';
+      downloadBtn.style.display = 'none';
+      emptyState.style.display = 'block';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    // 生成文字图片
+    generateBtn.addEventListener('click', () => {
+      if (!currentImage || isProcessing) return;
+      
+      isProcessing = true;
+      generateBtn.disabled = true;
+      generateBtn.textContent = '生成中...';
+
+      setTimeout(() => {
+        generateTextImage();
+        isProcessing = false;
+        generateBtn.disabled = false;
+        generateBtn.textContent = '重新生成';
+        downloadBtn.style.display = 'block';
+      }, 100);
+    });
+
+    function generateTextImage() {
+      const fontSize = parseInt(fontSizeInput.value);
+      const spacing = parseInt(spacingInput.value);
+      const threshold = parseInt(thresholdInput.value);
+      const text = textInput.value || ' ';
+
+      // 设置画布大小
+      const maxWidth = 800;
+      const scale = Math.min(1, maxWidth / currentImage.width);
+      canvas.width = currentImage.width * scale;
+      canvas.height = currentImage.height * scale;
+
+      // 绘制图片到画布获取像素数据
+      ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data;
+
+      // 清空画布
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 准备文字
+      const chars = text.repeat(100).split('');
+      let charIndex = 0;
+
+      // 设置文字样式
+      ctx.font = `${fontSize}px "Microsoft YaHei", "SimHei", sans-serif`;
+      ctx.fillStyle = '#000000';
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
+
+      // 扫描像素并在非透明/深色区域放置文字
+      const step = Math.max(fontSize + spacing, 4);
+      
+      for (let y = step / 2; y < canvas.height; y += step) {
+        for (let x = step / 2; x < canvas.width; x += step) {
+          const pixelIndex = (Math.floor(y) * canvas.width + Math.floor(x)) * 4;
+          const r = pixels[pixelIndex];
+          const g = pixels[pixelIndex + 1];
+          const b = pixels[pixelIndex + 2];
+          const a = pixels[pixelIndex + 3];
+
+          // 计算亮度
+          const brightness = (r + g + b) / 3;
+
+          // 如果像素足够暗（在图片形状内）
+          if (brightness < threshold && a > 128) {
+            const char = chars[charIndex % chars.length];
+            ctx.fillText(char, x, y);
+            charIndex++;
+          }
+        }
+      }
+    }
+
+    // 下载图片
+    downloadBtn.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'text-image.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    });
+  </script>
+</body>
+</html>
