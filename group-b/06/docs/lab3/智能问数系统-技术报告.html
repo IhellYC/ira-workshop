@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能问数系统技术方案报告</title>
+    <style>
+        /* ============================================
+           基础样式重置
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ============================================
+           页面基础设置 - A4纸张模拟
+           ============================================ */
+        body {
+            font-family: "SimSun", "宋体", "PingFang SC", "Microsoft YaHei", serif;
+            font-size: 12pt;
+            line-height: 1.8;
+            color: #222222;
+            background: #e8e8e8;
+            padding: 20px;
+        }
+
+        /* ============================================
+           文档容器 - 模拟Word页面
+           ============================================ */
+        .document {
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            padding: 25mm 20mm;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+
+        /* ============================================
+           封面页样式
+           ============================================ */
+        .cover {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            page-break-after: always;
+        }
+
+        .cover-title {
+            font-size: 28pt;
+            font-weight: bold;
+            color: #004098;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .cover-subtitle {
+            font-size: 18pt;
+            color: #555555;
+            margin-bottom: 60px;
+        }
+
+        .cover-info {
+            font-size: 14pt;
+            color: #333333;
+            line-height: 2.2;
+        }
+
+        .cover-info p {
+            margin: 8px 0;
+        }
+
+        .cover-logo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #004098 0%, #0066cc 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        .cover-decoration {
+            width: 200px;
+            height: 4px;
+            background: linear-gradient(90deg, #004098 0%, #E72521 100%);
+            margin: 30px 0;
+        }
+
+        /* ============================================
+           目录样式
+           ============================================ */
+        .toc {
+            page-break-after: always;
+        }
+
+        .toc-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #004098;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #004098;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc-list li {
+            margin: 12px 0;
+            font-size: 12pt;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .toc-list a {
+            color: #222222;
+            text-decoration: none;
+            display: flex;
+            width: 100%;
+        }
+
+        .toc-number {
+            min-width: 40px;
+            color: #004098;
+            font-weight: bold;
+        }
+
+        .toc-text {
+            flex: 1;
+        }
+
+        .toc-dots {
+            flex: 1;
+            border-bottom: 1px dotted #999;
+            margin: 0 8px;
+            position: relative;
+            top: -4px;
+        }
+
+        .toc-page {
+            min-width: 30px;
+            text-align: right;
+            color: #555555;
+        }
+
+        /* ============================================
+           标题样式
+           ============================================ */
+        h1 {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #004098;
+            margin: 30px 0 20px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #004098;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #222222;
+            margin: 25px 0 15px 0;
+            padding-left: 12px;
+            border-left: 4px solid #004098;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #333333;
+            margin: 20px 0 12px 0;
+            page-break-after: avoid;
+        }
+
+        /* ============================================
+           段落和文本样式
+           ============================================ */
+        p {
+            margin: 12px 0;
+            text-indent: 2em;
+            text-align: justify;
+        }
+
+        .no-indent {
+            text-indent: 0;
+        }
+
+        /* ============================================
+           表格样式 - Word风格
+           ============================================ */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 11pt;
+            page-break-inside: avoid;
+        }
+
+        table caption {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #333333;
+        }
+
+        th {
+            background: #f5f5f5;
+            border: 1px solid #cccccc;
+            padding: 10px 12px;
+            font-weight: bold;
+            text-align: center;
+            color: #222222;
+        }
+
+        td {
+            border: 1px solid #cccccc;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        /* ============================================
+           代码块样式
+           ============================================ */
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: "Consolas", "Monaco", "Courier New", monospace;
+            font-size: 10pt;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: "Consolas", "Monaco", "Courier New", monospace;
+            font-size: 10pt;
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #E72521;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: #222222;
+        }
+
+        /* ============================================
+           列表样式
+           ============================================ */
+        ul, ol {
+            margin: 12px 0;
+            padding-left: 2em;
+        }
+
+        li {
+            margin: 6px 0;
+        }
+
+        /* ============================================
+           引用块样式
+           ============================================ */
+        blockquote {
+            margin: 20px 0;
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #004098;
+            font-style: italic;
+            color: #555555;
+        }
+
+        /* ============================================
+           信息框样式
+           ============================================ */
+        .info-box {
+            margin: 20px 0;
+            padding: 16px 20px;
+            background: #e8f4fd;
+            border: 1px solid #004098;
+            border-radius: 4px;
+        }
+
+        .info-box-title {
+            font-weight: bold;
+            color: #004098;
+            margin-bottom: 8px;
+            font-size: 12pt;
+        }
+
+        .warning-box {
+            margin: 20px 0;
+            padding: 16px 20px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+        }
+
+        .success-box {
+            margin: 20px 0;
+            padding: 16px 20px;
+            background: #d4edda;
+            border: 1px solid #28a745;
+            border-radius: 4px;
+        }
+
+        /* ============================================
+           分页控制
+           ============================================ */
+        .page-break {
+            page-break-before: always;
+        }
+
+        /* ============================================
+           页眉页脚
+           ============================================ */
+        .header {
+            position: running(header);
+            font-size: 10pt;
+            color: #888888;
+            border-bottom: 1px solid #cccccc;
+            padding-bottom: 8px;
+        }
+
+        .footer {
+            position: running(footer);
+            font-size: 10pt;
+            color: #888888;
+            text-align: center;
+            border-top: 1px solid #cccccc;
+            padding-top: 8px;
+        }
+
+        /* ============================================
+           图表容器
+           ============================================ */
+        .figure {
+            margin: 24px 0;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .figure-caption {
+            font-size: 10pt;
+            color: #555555;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* ============================================
+           高亮文本
+           ============================================ */
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+        }
+
+        .key-point {
+            color: #004098;
+            font-weight: bold;
+        }
+
+        .alert-text {
+            color: #E72521;
+            font-weight: bold;
+        }
+
+        /* ============================================
+           签名区域
+           ============================================ */
+        .signature {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .signature-item {
+            text-align: center;
+        }
+
+        .signature-line {
+            width: 150px;
+            border-bottom: 1px solid #222222;
+            margin: 40px auto 10px;
+        }
+
+        /* ============================================
+           流程图样式
+           ============================================ */
+        .flow-chart {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .flow-step {
+            background: #004098;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 11pt;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            margin: 0 15px;
+            color: #004098;
+            font-size: 20px;
+        }
+
+        /* ============================================
+           架构图样式
+           ============================================ */
+        .arch-diagram {
+            margin: 20px 0;
+            padding: 24px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .arch-layer {
+            margin: 12px 0;
+            padding: 14px 20px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .arch-layer-presentation {
+            background: #e8f4fd;
+            border: 2px solid #004098;
+            color: #004098;
+        }
+
+        .arch-layer-service {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #1e7e34;
+        }
+
+        .arch-layer-engine {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+
+        .arch-layer-data {
+            background: #f5f5f5;
+            border: 2px solid #888888;
+            color: #333333;
+        }
+
+        .arch-arrow-down {
+            text-align: center;
+            color: #004098;
+            font-size: 18px;
+            margin: 4px 0;
+        }
+
+        /* ============================================
+           打印样式优化
+           ============================================ */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .document {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .cover {
+                page-break-after: always;
+            }
+            
+            .toc {
+                page-break-after: always;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            
+            table, pre, blockquote {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* ============================================
+           响应式适配
+           ============================================ */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .document {
+                padding: 15mm;
+            }
+            
+            .cover-title {
+                font-size: 22pt;
+            }
+            
+            table {
+                font-size: 10pt;
+            }
+            
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <!-- 封面 -->
+        <div class="cover">
+            <div class="cover-logo">智</div>
+            <h1 class="cover-title">智能问数系统<br>技术方案报告</h1>
+            <div class="cover-decoration"></div>
+            <p class="cover-subtitle">AI驱动的自然语言数据查询与分析平台</p>
+            <div class="cover-info">
+                <p><strong>文档编号：</strong>IQS-TECH-2026-001</p>
+                <p><strong>版本号：</strong>V1.0</p>
+                <p><strong>编制日期：</strong>2026年4月13日</p>
+                <p><strong>密级：</strong>内部资料</p>
+            </div>
+        </div>
+
+        <!-- 目录 -->
+        <div class="toc">
+            <div class="toc-title">目  录</div>
+            <ul class="toc-list">
+                <li>
+                    <a href="#section1">
+                        <span class="toc-number">一、</span>
+                        <span class="toc-text">项目概述</span>
+                        <span class="toc-dots"></span>
+                        <span class="toc-page">1</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#section2">
+                        <span class="toc-number">二、</span>
+                        <span class="toc-text">需求分析</span>
+                        <span class="toc-dots"></span>
+                        <span class="toc-page">3</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#section3">
+                        <span class="toc-number">三、</span>
+                        <span class="toc-text">系统架构设计</span>
+                        <span class="toc-dots"></span>
+                        <span class="toc-page">5</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#section4">
+                        <span class="toc-number">四、</span>
+                        <span class="toc-text">核心模块详细设计</span>
+                        <span class="toc-dots"></span>
+                        <span class="toc-page">7</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#section5">
+                        <span class="toc-number">五、</span>
+                        <span class="toc-text">前端交互设计</span>
+                        <span class="toc-dots"></span>
+                        <span class="toc-page">10</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#section6">
+                        <span class="toc-number">六、</span>
+                        <span class="toc-text">数据安全与权限管理</span>
+                        <span class="toc-dots"></span>
+                        <span class="toc-page">12</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#section7">
+                        <span class="toc-number">七、</span>
+                        <span class="toc-text">实施方案与项目计划</span>
+                        <span class="toc-dots"></span>
+                        <span class="toc-page">14</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#section8">
+                        <span class="toc-number">八、</span>
+                        <span class="toc-text">风险评估与保障措施</span>
+                        <span class="toc-dots"></span>
+                        <span class="toc-page">16</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 正文开始 -->
+        <h1 id="section1">一、项目概述</h1>
+        
+        <h2>1.1 项目背景</h2>
+        <p>在企业数字化转型过程中，数据驱动决策已成为核心竞争力。然而，传统数据查询方式存在<span class="key-point">技术门槛高</span>、<span class="key-point">查询效率低</span>、<span class="key-point">数据可读性差</span>等突出问题。业务人员需依赖技术团队编写SQL语句获取数据，从需求提出到数据交付往往需要数小时甚至数天，严重制约了业务决策效率。</p>
+
+        <p>智能问数系统（Intelligent Query System，以下简称IQS）旨在通过<span class="key-point">自然语言处理（NLP）</span>和<span class="key-point">AI大模型技术</span>，构建一个面向全员的数据查询与分析平台。用户只需以日常对话的方式提问，系统即可自动理解语义、检索数据、生成分析结果，并以文字描述和可视化表格的形式直观呈现，真正实现"人人都是数据分析师"的愿景。</p>
+
+        <h2>1.2 项目目标</h2>
+        <table>
+            <caption>表 1-1 项目目标矩阵</caption>
+            <tr>
+                <th style="width: 15%;">目标维度</th>
+                <th style="width: 50%;">具体描述</th>
+                <th style="width: 35%;">衡量指标</th>
+            </tr>
+            <tr>
+                <td>降低门槛</td>
+                <td>支持自然语言查询，消除SQL技术壁垒</td>
+                <td>非技术人员自助查询率≥85%</td>
+            </tr>
+            <tr>
+                <td>提升效率</td>
+                <td>即时响应数据查询需求，缩短数据获取周期</td>
+                <td>平均查询响应时间&lt;3秒</td>
+            </tr>
+            <tr>
+                <td>精准分析</td>
+                <td>AI辅助数据解读，提供趋势分析和异常预警</td>
+                <td>查询结果准确率≥95%</td>
+            </tr>
+            <tr>
+                <td>安全合规</td>
+                <td>细粒度数据权限控制，保障数据安全</td>
+                <td>数据泄露事件为零</td>
+            </tr>
+            <tr>
+                <td>用户体验</td>
+                <td>提供流畅的对话式交互体验</td>
+                <td>用户满意度≥4.5/5</td>
+            </tr>
+        </table>
+
+        <h2>1.3 系统定位</h2>
+        <div class="info-box">
+            <div class="info-box-title">产品定位：AI驱动的企业级数据查询助手</div>
+            <ul>
+                <li><strong>目标用户：</strong>企业全员，包括业务人员、管理层、运营团队等非技术角色</li>
+                <li><strong>核心能力：</strong>自然语言理解 → 智能SQL生成 → 数据查询执行 → 结果可视化呈现</li>
+                <li><strong>交互模式：</strong>对话式Chat UI，支持上下文关联的多轮对话</li>
+                <li><strong>数据范围：</strong>覆盖销售、用户、库存、财务、运营等核心业务域</li>
+            </ul>
+        </div>
+
+        <h1 id="section2" class="page-break">二、需求分析</h1>
+
+        <h2>2.1 功能需求</h2>
+        
+        <h3>2.1.1 自然语言查询</h3>
+        <table>
+            <caption>表 2-1 自然语言查询功能需求</caption>
+            <tr>
+                <th style="width: 12%;">需求编号</th>
+                <th style="width: 40%;">需求描述</th>
+                <th style="width: 12%;">优先级</th>
+                <th style="width: 36%;">验收标准</th>
+            </tr>
+            <tr>
+                <td>REQ-001</td>
+                <td>支持中文自然语言输入查询</td>
+                <td>P0</td>
+                <td>正确识别率≥95%</td>
+            </tr>
+            <tr>
+                <td>REQ-002</td>
+                <td>支持多轮对话上下文理解</td>
+                <td>P0</td>
+                <td>上下文关联准确率≥90%</td>
+            </tr>
+            <tr>
+                <td>REQ-003</td>
+                <td>提供推荐问题引导用户提问</td>
+                <td>P1</td>
+                <td>推荐问题覆盖核心业务场景</td>
+            </tr>
+            <tr>
+                <td>REQ-004</td>
+                <td>支持模糊查询和同义词识别</td>
+                <td>P1</td>
+                <td>同义词映射覆盖率≥80%</td>
+            </tr>
+            <tr>
+                <td>REQ-005</td>
+                <td>查询意图消歧与确认机制</td>
+                <td>P2</td>
+                <td>歧义场景自动触发确认对话</td>
+            </tr>
+        </table>
+
+        <h3>2.1.2 数据展示与分析</h3>
+        <table>
+            <caption>表 2-2 数据展示功能需求</caption>
+            <tr>
+                <th style="width: 12%;">需求编号</th>
+                <th style="width: 40%;">需求描述</th>
+                <th style="width: 12%;">优先级</th>
+                <th style="width: 36%;">验收标准</th>
+            </tr>
+            <tr>
+                <td>REQ-006</td>
+                <td>结构化表格展示查询结果</td>
+                <td>P0</td>
+                <td>支持多列数据、排序、斑马纹</td>
+            </tr>
+            <tr>
+                <td>REQ-007</td>
+                <td>自然语言文字描述分析结论</td>
+                <td>P0</td>
+                <td>包含关键指标、趋势、对比分析</td>
+            </tr>
+            <tr>
+                <td>REQ-008</td>
+                <td>数据正负趋势视觉标识</td>
+                <td>P0</td>
+                <td>正值绿色、负值红色、预警标识</td>
+            </tr>
+            <tr>
+                <td>REQ-009</td>
+                <td>关键数据指标高亮强调</td>
+                <td>P1</td>
+                <td>核心数据加粗品牌色显示</td>
+            </tr>
+            <tr>
+                <td>REQ-010</td>
+                <td>支持数据导出（CSV/Excel）</td>
+                <td>P2</td>
+                <td>一键导出，格式准确</td>
+            </tr>
+        </table>
+
+        <h2>2.2 非功能需求</h2>
+        <table>
+            <caption>表 2-3 非功能需求矩阵</caption>
+            <tr>
+                <th style="width: 20%;">需求类型</th>
+                <th style="width: 80%;">具体要求</th>
+            </tr>
+            <tr>
+                <td>性能</td>
+                <td>查询响应时间&lt;3秒（P95），系统并发支持≥500用户同时在线</td>
+            </tr>
+            <tr>
+                <td>可用性</td>
+                <td>系统可用率≥99.9%，故障恢复时间&lt;30分钟</td>
+            </tr>
+            <tr>
+                <td>兼容性</td>
+                <td>支持Chrome/Firefox/Safari/Edge最新两个版本，移动端响应式适配</td>
+            </tr>
+            <tr>
+                <td>安全性</td>
+                <td>数据传输HTTPS加密，基于角色的数据权限控制，操作审计日志</td>
+            </tr>
+            <tr>
+                <td>可扩展性</td>
+                <td>支持水平扩展，支持接入新数据源，支持自定义业务词库</td>
+            </tr>
+            <tr>
+                <td>可维护性</td>
+                <td>前后端分离架构，模块化设计，日志完善，监控告警齐全</td>
+            </tr>
+        </table>
+
+        <h2>2.3 业务场景分析</h2>
+        <table>
+            <caption>表 2-4 典型业务查询场景</caption>
+            <tr>
+                <th style="width: 15%;">场景分类</th>
+                <th style="width: 35%;">典型问题示例</th>
+                <th style="width: 25%;">涉及数据域</th>
+                <th style="width: 25%;">返回内容</th>
+            </tr>
+            <tr>
+                <td>销售分析</td>
+                <td>"上个月销售额是多少？"</td>
+                <td>销售订单、区域、渠道</td>
+                <td>总额、环比、同比、区域明细表</td>
+            </tr>
+            <tr>
+                <td>用户分析</td>
+                <td>"用户增长趋势如何？"</td>
+                <td>用户注册、活跃、留存</td>
+                <td>用户总量、增长率、渠道分布表</td>
+            </tr>
+            <tr>
+                <td>库存管理</td>
+                <td>"当前库存状况怎样？"</td>
+                <td>库存量、周转、预警</td>
+                <td>库存总量、周转天数、品类明细表</td>
+            </tr>
+            <tr>
+                <td>财务分析</td>
+                <td>"第一季度利润分析"</td>
+                <td>营收、成本、利润</td>
+                <td>毛利率、净利率、月度趋势表</td>
+            </tr>
+            <tr>
+                <td>售后分析</td>
+                <td>"退货退款数据汇总"</td>
+                <td>退货、退款、原因</td>
+                <td>退货率、退款额、品类分析表</td>
+            </tr>
+        </table>
+
+        <h1 id="section3" class="page-break">三、系统架构设计</h1>
+
+        <h2>3.1 总体架构</h2>
+        <p>智能问数系统采用<span class="key-point">前后端分离</span>的分层架构设计，整体分为表现层、服务层、引擎层和数据层四个核心层次：</p>
+
+        <div class="arch-diagram">
+            <div class="arch-layer arch-layer-presentation">表现层（Presentation Layer）—— Chat UI 对话式交互界面</div>
+            <div class="arch-arrow-down">▼</div>
+            <div class="arch-layer arch-layer-service">服务层（Service Layer）—— API网关 / 会话管理 / 权限控制</div>
+            <div class="arch-arrow-down">▼</div>
+            <div class="arch-layer arch-layer-engine">引擎层（Engine Layer）—— NLP语义理解 / SQL生成 / 数据分析</div>
+            <div class="arch-arrow-down">▼</div>
+            <div class="arch-layer arch-layer-data">数据层（Data Layer）—— 业务数据库 / 数据仓库 / 缓存层</div>
+        </div>
+
+        <h2>3.2 技术选型</h2>
+        <table>
+            <caption>表 3-1 技术选型方案</caption>
+            <tr>
+                <th style="width: 15%;">技术层面</th>
+                <th style="width: 25%;">技术选型</th>
+                <th style="width: 60%;">选型理由</th>
+            </tr>
+            <tr>
+                <td>前端框架</td>
+                <td>原生HTML/CSS/JS</td>
+                <td>轻量无依赖，加载性能极佳，便于嵌入各类系统</td>
+            </tr>
+            <tr>
+                <td>UI设计</td>
+                <td>Design Token体系</td>
+                <td>CSS变量驱动，统一视觉规范，支持主题切换</td>
+            </tr>
+            <tr>
+                <td>后端服务</td>
+                <td>Spring Boot / Python FastAPI</td>
+                <td>成熟稳定，生态丰富，高性能异步处理</td>
+            </tr>
+            <tr>
+                <td>AI引擎</td>
+                <td>大语言模型（LLM）</td>
+                <td>强大的自然语言理解与SQL生成能力</td>
+            </tr>
+            <tr>
+                <td>数据库</td>
+                <td>MySQL / ClickHouse</td>
+                <td>OLTP+OLAP双引擎，兼顾事务与分析场景</td>
+            </tr>
+            <tr>
+                <td>缓存</td>
+                <td>Redis</td>
+                <td>高频查询缓存，会话状态管理</td>
+            </tr>
+            <tr>
+                <td>消息队列</td>
+                <td>RabbitMQ / Kafka</td>
+                <td>异步任务处理，查询任务解耦</td>
+            </tr>
+        </table>
+
+        <h2>3.3 前端设计体系</h2>
+        <h3>3.3.1 Design Token 色彩体系</h3>
+        <table>
+            <caption>表 3-2 色彩Token规范</caption>
+            <tr>
+                <th style="width: 25%;">Token名称</th>
+                <th style="width: 15%;">色值</th>
+                <th style="width: 60%;">应用场景</th>
+            </tr>
+            <tr>
+                <td><span style="color:#4f46e5;font-weight:bold;">■ brand-500</span></td>
+                <td><code>#4F46E5</code></td>
+                <td>品牌主色，强调文本、按钮悬停、数据高亮</td>
+            </tr>
+            <tr>
+                <td><span style="color:#4338ca;font-weight:bold;">■ brand-600</span></td>
+                <td><code>#4338CA</code></td>
+                <td>Header渐变起始色、深色交互状态</td>
+            </tr>
+            <tr>
+                <td><span style="color:#6366f1;font-weight:bold;">■ brand-400</span></td>
+                <td><code>#6366F1</code></td>
+                <td>Header渐变结束色、输入框聚焦边框</td>
+            </tr>
+            <tr>
+                <td><span style="color:#10b981;font-weight:bold;">■ success</span></td>
+                <td><code>#10B981</code></td>
+                <td>正增长数据、正常状态、达标指标</td>
+            </tr>
+            <tr>
+                <td><span style="color:#ef4444;font-weight:bold;">■ danger</span></td>
+                <td><code>#EF4444</code></td>
+                <td>负增长数据、预警状态、异常指标</td>
+            </tr>
+            <tr>
+                <td><span style="color:#f59e0b;font-weight:bold;">■ warning</span></td>
+                <td><code>#F59E0B</code></td>
+                <td>警告提示、注意事项</td>
+            </tr>
+        </table>
+
+        <h3>3.3.2 字体与排版规范</h3>
+        <pre><code>/* 字体家族 */
+font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+
+/* 字号层级 */
+Header标题:  17px / font-weight: 600
+欢迎标题:    24px / font-weight: 700
+正文内容:    14px / font-weight: 400
+表格文字:    13px / font-weight: 400
+辅助文字:    12px / font-weight: 400
+提示文字:    11px / font-weight: 400</code></pre>
+
+        <h1 id="section4" class="page-break">四、核心模块详细设计</h1>
+
+        <h2>4.1 系统处理流程</h2>
+        <p>用户从输入问题到获取结果的完整处理流程如下：</p>
+
+        <div class="flow-chart">
+            <div class="flow-step">用户输入</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">NLP解析</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">SQL生成</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">数据查询</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">结果呈现</div>
+        </div>
+
+        <h2>4.2 自然语言理解模块</h2>
+        <p>自然语言理解模块是系统的核心智能组件，负责将用户的自然语言问题转化为结构化的查询意图。</p>
+        
+        <h3>4.2.1 意图识别</h3>
+        <table>
+            <caption>表 4-1 查询意图分类</caption>
+            <tr>
+                <th style="width: 15%;">意图类别</th>
+                <th style="width: 35%;">描述</th>
+                <th style="width: 25%;">示例</th>
+                <th style="width: 25%;">关键词提取</th>
+            </tr>
+            <tr>
+                <td>指标查询</td>
+                <td>查询某一具体指标的数值</td>
+                <td>"上月销售额是多少"</td>
+                <td>时间=上月, 指标=销售额</td>
+            </tr>
+            <tr>
+                <td>趋势分析</td>
+                <td>分析指标的变化趋势</td>
+                <td>"用户增长趋势如何"</td>
+                <td>对象=用户, 分析=趋势</td>
+            </tr>
+            <tr>
+                <td>对比分析</td>
+                <td>比较不同维度的数据差异</td>
+                <td>"各区域销售对比"</td>
+                <td>维度=区域, 指标=销售</td>
+            </tr>
+            <tr>
+                <td>异常检测</td>
+                <td>识别数据中的异常和预警</td>
+                <td>"哪些商品库存不足"</td>
+                <td>对象=商品, 条件=库存不足</td>
+            </tr>
+            <tr>
+                <td>汇总统计</td>
+                <td>聚合统计某类数据</td>
+                <td>"退货退款数据汇总"</td>
+                <td>对象=退货退款, 操作=汇总</td>
+            </tr>
+        </table>
+
+        <h3>4.2.2 实体抽取</h3>
+        <p>系统通过NER（命名实体识别）技术从用户问题中提取关键业务实体：</p>
+        <ul>
+            <li><strong>时间实体：</strong>"上个月"、"第一季度"、"2026年3月"等时间表达</li>
+            <li><strong>指标实体：</strong>"销售额"、"利润"、"退货率"等业务指标</li>
+            <li><strong>维度实体：</strong>"区域"、"品类"、"渠道"等分析维度</li>
+            <li><strong>条件实体：</strong>"增长超过10%"、"库存不足"等筛选条件</li>
+        </ul>
+
+        <h2>4.3 智能SQL生成模块</h2>
+        <p>基于LLM大语言模型，将结构化的查询意图转化为可执行的SQL语句。核心设计如下：</p>
+
+        <div class="warning-box">
+            <div class="info-box-title">⚠️ 安全约束</div>
+            <p class="no-indent">SQL生成模块必须遵循严格的安全规范：仅允许SELECT查询操作，禁止INSERT/UPDATE/DELETE等写入操作；所有生成的SQL需经过语法校验和安全审计后方可执行；执行超时上限为30秒，防止慢查询影响系统性能。</p>
+        </div>
+
+        <h3>4.3.1 SQL生成流程</h3>
+        <pre><code>1. 接收结构化查询意图（意图类别 + 实体列表）
+2. 匹配数据库元数据（表名、字段名、关联关系）
+3. 调用LLM生成候选SQL语句
+4. SQL安全校验（白名单过滤、注入检测）
+5. SQL语法验证（EXPLAIN预检）
+6. 执行查询并返回结果集</code></pre>
+
+        <h2>4.4 数据分析与呈现模块</h2>
+        <h3>4.4.1 结果处理策略</h3>
+        <table>
+            <caption>表 4-2 数据呈现策略</caption>
+            <tr>
+                <th style="width: 20%;">数据特征</th>
+                <th style="width: 30%;">呈现方式</th>
+                <th style="width: 50%;">说明</th>
+            </tr>
+            <tr>
+                <td>单一指标值</td>
+                <td>文字描述 + 数据高亮</td>
+                <td>关键数据加粗显示，附带环比/同比分析</td>
+            </tr>
+            <tr>
+                <td>多维度明细</td>
+                <td>文字摘要 + 数据表格</td>
+                <td>表格支持排序、正负趋势颜色标识</td>
+            </tr>
+            <tr>
+                <td>时序趋势</td>
+                <td>文字总结 + 趋势表格</td>
+                <td>按时间维度展示，标注增减变化</td>
+            </tr>
+            <tr>
+                <td>异常预警</td>
+                <td>警告文字 + 预警表格</td>
+                <td>预警状态红色标识，正常状态绿色标识</td>
+            </tr>
+        </table>
+
+        <h3>4.4.2 数据格式化规范</h3>
+        <div class="info-box">
+            <div class="info-box-title">数据展示规范</div>
+            <ul>
+                <li><strong>金额数据：</strong>千分位分隔，保留一位小数，单位"万元"，如 <code>1,283.6 万元</code></li>
+                <li><strong>百分比数据：</strong>保留一位小数，正值前缀"+"并标绿，负值标红，如 <span style="color:#10b981;">+12.4%</span></li>
+                <li><strong>数量数据：</strong>千分位分隔，单位明确，如 <code>12,680 单</code></li>
+                <li><strong>状态标识：</strong>"正常"绿色显示，"预警"红色显示，"达标"绿色显示</li>
+            </ul>
+        </div>
+
+        <h1 id="section5" class="page-break">五、前端交互设计</h1>
+
+        <h2>5.1 页面结构</h2>
+        <p>前端采用<span class="key-point">单页应用（SPA）</span>架构，页面从上到下分为三个核心区域：</p>
+
+        <div class="flow-chart">
+            <div class="flow-step">Header 顶部导航</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">Chat Area 对话区域</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">Input Area 输入区域</div>
+        </div>
+
+        <h2>5.2 组件设计规范</h2>
+        <table>
+            <caption>表 5-1 核心UI组件规范</caption>
+            <tr>
+                <th style="width: 18%;">组件名称</th>
+                <th style="width: 40%;">设计规范</th>
+                <th style="width: 42%;">交互行为</th>
+            </tr>
+            <tr>
+                <td>Header</td>
+                <td>渐变背景(#4338CA→#6366F1)，高度固定，品牌图标+标题+状态信息</td>
+                <td>固定顶部，不随页面滚动</td>
+            </tr>
+            <tr>
+                <td>Welcome Screen</td>
+                <td>居中布局，品牌渐变图标+欢迎文案+推荐问题按钮列表</td>
+                <td>首次进入显示，发送消息后隐藏，推荐问题点击即发送</td>
+            </tr>
+            <tr>
+                <td>用户消息气泡</td>
+                <td>渐变背景，右对齐，右上圆角缩小，品牌色阴影</td>
+                <td>发送后渐入动画，附带时间戳</td>
+            </tr>
+            <tr>
+                <td>AI回复气泡</td>
+                <td>白色背景，左对齐，左上圆角缩小，轻阴影+细边框</td>
+                <td>滑入动画，支持内嵌数据表格</td>
+            </tr>
+            <tr>
+                <td>数据表格</td>
+                <td>圆角边框包裹，品牌色浅底表头，行悬停高亮，数值状态着色</td>
+                <td>支持横向滚动，悬停行高亮，正负值自动着色</td>
+            </tr>
+            <tr>
+                <td>输入框</td>
+                <td>圆角输入框+圆角发送按钮，聚焦蓝色边框+光晕效果</td>
+                <td>Enter键发送，查询中禁用，placeholder引导</td>
+            </tr>
+            <tr>
+                <td>加载指示器</td>
+                <td>AI头像+分析中文字+三点跳动动画</td>
+                <td>查询处理中显示，结果返回后消失</td>
+            </tr>
+        </table>
+
+        <h2>5.3 动效设计</h2>
+        <table>
+            <caption>表 5-2 动效规范</caption>
+            <tr>
+                <th style="width: 20%;">动效名称</th>
+                <th style="width: 25%;">缓动函数</th>
+                <th style="width: 15%;">时长</th>
+                <th style="width: 40%;">应用场景</th>
+            </tr>
+            <tr>
+                <td>fadeIn</td>
+                <td>ease-out</td>
+                <td>300-500ms</td>
+                <td>欢迎页出现、用户消息发送</td>
+            </tr>
+            <tr>
+                <td>slideUp</td>
+                <td>ease-out</td>
+                <td>400ms</td>
+                <td>AI回复消息滑入</td>
+            </tr>
+            <tr>
+                <td>typingDot</td>
+                <td>ease-in-out</td>
+                <td>1400ms循环</td>
+                <td>加载指示器三点跳动</td>
+            </tr>
+            <tr>
+                <td>pulseRing</td>
+                <td>ease-in-out</td>
+                <td>2500ms循环</td>
+                <td>欢迎页图标呼吸光效</td>
+            </tr>
+            <tr>
+                <td>hover lift</td>
+                <td>cubic-bezier(0.4,0,0.2,1)</td>
+                <td>250ms</td>
+                <td>按钮、建议卡片悬停抬升</td>
+            </tr>
+        </table>
+
+        <h2>5.4 响应式适配方案</h2>
+        <div class="info-box">
+            <div class="info-box-title">响应式断点与适配策略</div>
+            <ul>
+                <li><strong>桌面端（&gt;640px）：</strong>完整布局，显示所有元素，消息气泡最大宽度85%</li>
+                <li><strong>移动端（≤640px）：</strong>隐藏Header右侧状态信息，减小内边距，消息气泡最大宽度90%，缩小字号与间距</li>
+                <li><strong>数据表格：</strong>横向滚动适配，确保移动端完整展示</li>
+            </ul>
+        </div>
+
+        <h1 id="section6" class="page-break">六、数据安全与权限管理</h1>
+
+        <h2>6.1 安全架构</h2>
+        <p>系统安全设计遵循<span class="key-point">纵深防御</span>原则，从传输层、应用层、数据层三个维度构建安全体系。</p>
+        
+        <table>
+            <caption>表 6-1 安全措施清单</caption>
+            <tr>
+                <th style="width: 15%;">安全层面</th>
+                <th style="width: 35%;">安全措施</th>
+                <th style="width: 50%;">实施说明</th>
+            </tr>
+            <tr>
+                <td>传输安全</td>
+                <td>全链路HTTPS/TLS加密</td>
+                <td>所有API通信强制HTTPS，证书自动续期</td>
+            </tr>
+            <tr>
+                <td>认证鉴权</td>
+                <td>JWT Token + OAuth 2.0</td>
+                <td>统一登录认证，Token有效期管理，刷新机制</td>
+            </tr>
+            <tr>
+                <td>SQL安全</td>
+                <td>SQL白名单 + 注入防护</td>
+                <td>仅允许SELECT操作，参数化查询，关键字过滤</td>
+            </tr>
+            <tr>
+                <td>数据脱敏</td>
+                <td>敏感字段自动脱敏</td>
+                <td>手机号、身份证等PII数据掩码显示</td>
+            </tr>
+            <tr>
+                <td>审计日志</td>
+                <td>全量查询操作日志</td>
+                <td>记录用户、时间、查询内容、返回结果</td>
+            </tr>
+            <tr>
+                <td>访问控制</td>
+                <td>RBAC角色权限模型</td>
+                <td>按角色控制可查询的数据域和字段范围</td>
+            </tr>
+        </table>
+
+        <h2>6.2 数据权限模型</h2>
+        <table>
+            <caption>表 6-2 角色权限矩阵</caption>
+            <tr>
+                <th style="width: 15%;">角色</th>
+                <th style="width: 20%;">可查询数据域</th>
+                <th style="width: 20%;">数据粒度</th>
+                <th style="width: 20%;">敏感数据</th>
+                <th style="width: 25%;">特殊权限</th>
+            </tr>
+            <tr>
+                <td>管理层</td>
+                <td>全部</td>
+                <td>公司级+区域级</td>
+                <td>可见</td>
+                <td>数据导出、跨域查询</td>
+            </tr>
+            <tr>
+                <td>部门经理</td>
+                <td>本部门相关</td>
+                <td>部门级+团队级</td>
+                <td>脱敏</td>
+                <td>数据导出</td>
+            </tr>
+            <tr>
+                <td>业务人员</td>
+                <td>本岗位相关</td>
+                <td>个人级</td>
+                <td>不可见</td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>运营人员</td>
+                <td>运营数据域</td>
+                <td>汇总级</td>
+                <td>脱敏</td>
+                <td>—</td>
+            </tr>
+        </table>
+
+        <h2>6.3 SQL注入防护</h2>
+        <div class="warning-box">
+            <div class="info-box-title">⚠️ SQL安全防护策略</div>
+            <ul>
+                <li><strong>白名单机制：</strong>仅允许SELECT语句，拦截所有DDL/DML操作</li>
+                <li><strong>关键字过滤：</strong>禁止 DROP、DELETE、UPDATE、INSERT、ALTER、TRUNCATE 等危险关键字</li>
+                <li><strong>参数化查询：</strong>所有动态值通过参数化方式传入，杜绝拼接注入</li>
+                <li><strong>执行限制：</strong>单次查询超时30秒自动终止，结果集上限10000行</li>
+                <li><strong>审计追溯：</strong>所有生成的SQL及执行结果完整记录，支持事后审计</li>
+            </ul>
+        </div>
+
+        <h1 id="section7" class="page-break">七、实施方案与项目计划</h1>
+
+        <h2>7.1 实施阶段划分</h2>
+        <table>
+            <caption>表 7-1 实施阶段计划</caption>
+            <tr>
+                <th style="width: 12%;">阶段</th>
+                <th style="width: 30%;">主要任务</th>
+                <th style="width: 10%;">工期</th>
+                <th style="width: 48%;">交付物</th>
+            </tr>
+            <tr>
+                <td>第一阶段</td>
+                <td>需求确认与架构设计</td>
+                <td>2周</td>
+                <td>需求规格说明书、架构设计文档、技术选型报告</td>
+            </tr>
+            <tr>
+                <td>第二阶段</td>
+                <td>前端Chat UI开发</td>
+                <td>3周</td>
+                <td>对话界面、消息组件、数据表格组件、响应式适配</td>
+            </tr>
+            <tr>
+                <td>第三阶段</td>
+                <td>NLP引擎与SQL生成</td>
+                <td>4周</td>
+                <td>意图识别模型、实体抽取模型、SQL生成引擎、安全校验模块</td>
+            </tr>
+            <tr>
+                <td>第四阶段</td>
+                <td>后端服务与数据集成</td>
+                <td>3周</td>
+                <td>API服务、数据源接入、权限管理、会话管理</td>
+            </tr>
+            <tr>
+                <td>第五阶段</td>
+                <td>系统联调与测试</td>
+                <td>2周</td>
+                <td>集成测试报告、性能测试报告、安全测试报告</td>
+            </tr>
+            <tr>
+                <td>第六阶段</td>
+                <td>试运行与优化</td>
+                <td>2周</td>
+                <td>试运行报告、优化方案、用户培训材料</td>
+            </tr>
+        </table>
+
+        <h2>7.2 团队配置</h2>
+        <table>
+            <caption>表 7-2 项目团队配置</caption>
+            <tr>
+                <th style="width: 20%;">角色</th>
+                <th style="width: 15%;">人数</th>
+                <th style="width: 65%;">职责描述</th>
+            </tr>
+            <tr>
+                <td>项目经理</td>
+                <td>1人</td>
+                <td>项目整体管理、进度把控、风险管理、干系人沟通</td>
+            </tr>
+            <tr>
+                <td>前端工程师</td>
+                <td>2人</td>
+                <td>Chat UI开发、组件封装、响应式适配、交互动效实现</td>
+            </tr>
+            <tr>
+                <td>后端工程师</td>
+                <td>2人</td>
+                <td>API服务开发、数据源集成、权限管理、性能优化</td>
+            </tr>
+            <tr>
+                <td>AI算法工程师</td>
+                <td>2人</td>
+                <td>NLP模型训练、意图识别、SQL生成引擎、模型优化</td>
+            </tr>
+            <tr>
+                <td>测试工程师</td>
+                <td>1人</td>
+                <td>功能测试、性能测试、安全测试、用户验收测试</td>
+            </tr>
+            <tr>
+                <td>UI设计师</td>
+                <td>1人</td>
+                <td>视觉设计、交互设计、Design Token维护</td>
+            </tr>
+        </table>
+
+        <h2>7.3 关键里程碑</h2>
+        <table>
+            <caption>表 7-3 关键里程碑节点</caption>
+            <tr>
+                <th style="width: 15%;">里程碑</th>
+                <th style="width: 20%;">目标日期</th>
+                <th style="width: 35%;">达成标志</th>
+                <th style="width: 30%;">决策点</th>
+            </tr>
+            <tr>
+                <td>M1</td>
+                <td>第2周末</td>
+                <td>架构设计评审通过</td>
+                <td>确认技术方案可行性</td>
+            </tr>
+            <tr>
+                <td>M2</td>
+                <td>第5周末</td>
+                <td>前端UI原型可演示</td>
+                <td>确认交互体验满足预期</td>
+            </tr>
+            <tr>
+                <td>M3</td>
+                <td>第9周末</td>
+                <td>NLP引擎核心功能就绪</td>
+                <td>确认查询准确率达标</td>
+            </tr>
+            <tr>
+                <td>M4</td>
+                <td>第12周末</td>
+                <td>系统联调完成</td>
+                <td>确认端到端流程畅通</td>
+            </tr>
+            <tr>
+                <td>M5</td>
+                <td>第14周末</td>
+                <td>测试通过，准备上线</td>
+                <td>确认系统满足上线条件</td>
+            </tr>
+            <tr>
+                <td>M6</td>
+                <td>第16周末</td>
+                <td>试运行稳定，正式交付</td>
+                <td>项目验收</td>
+            </tr>
+        </table>
+
+        <h1 id="section8" class="page-break">八、风险评估与保障措施</h1>
+
+        <h2>8.1 风险识别</h2>
+        <table>
+            <caption>表 8-1 风险评估矩阵</caption>
+            <tr>
+                <th style="width: 8%;">编号</th>
+                <th style="width: 27%;">风险描述</th>
+                <th style="width: 10%;">可能性</th>
+                <th style="width: 10%;">影响</th>
+                <th style="width: 45%;">应对措施</th>
+            </tr>
+            <tr>
+                <td>R001</td>
+                <td>NLP语义理解准确率不达标</td>
+                <td>中</td>
+                <td>高</td>
+                <td>持续优化训练数据，建立业务词库，增加意图确认机制</td>
+            </tr>
+            <tr>
+                <td>R002</td>
+                <td>SQL生成出现安全漏洞</td>
+                <td>低</td>
+                <td>高</td>
+                <td>严格白名单机制，多层安全校验，执行前人工审核高风险SQL</td>
+            </tr>
+            <tr>
+                <td>R003</td>
+                <td>查询响应时间超出预期</td>
+                <td>中</td>
+                <td>中</td>
+                <td>引入Redis缓存层，优化SQL执行计划，设置查询超时机制</td>
+            </tr>
+            <tr>
+                <td>R004</td>
+                <td>LLM大模型API稳定性风险</td>
+                <td>中</td>
+                <td>高</td>
+                <td>多模型备份切换，本地模型兜底，请求重试与降级策略</td>
+            </tr>
+            <tr>
+                <td>R005</td>
+                <td>数据安全与隐私合规风险</td>
+                <td>低</td>
+                <td>高</td>
+                <td>数据脱敏处理，权限最小化原则，定期安全审计</td>
+            </tr>
+            <tr>
+                <td>R006</td>
+                <td>用户接受度低，使用率不高</td>
+                <td>中</td>
+                <td>中</td>
+                <td>渐进式推广，用户培训，持续收集反馈优化体验</td>
+            </tr>
+        </table>
+
+        <h2>8.2 质量保障措施</h2>
+        <div class="success-box">
+            <div class="info-box-title">✓ 质量保障清单</div>
+            <ul>
+                <li>✓ <strong>代码审查</strong> - 所有代码提交需通过Code Review，关键模块双人审查</li>
+                <li>✓ <strong>自动化测试</strong> - 单元测试覆盖率≥80%，集成测试覆盖核心流程</li>
+                <li>✓ <strong>性能测试</strong> - 压力测试验证500并发场景下响应时间达标</li>
+                <li>✓ <strong>安全测试</strong> - SQL注入、XSS、CSRF等安全漏洞扫描</li>
+                <li>✓ <strong>兼容性测试</strong> - Chrome/Firefox/Safari/Edge + 移动端全覆盖</li>
+                <li>✓ <strong>UAT验收</strong> - 业务方参与用户验收测试，确认功能符合预期</li>
+            </ul>
+        </div>
+
+        <h2>8.3 运维监控方案</h2>
+        <table>
+            <caption>表 8-2 运维监控指标</caption>
+            <tr>
+                <th style="width: 20%;">监控维度</th>
+                <th style="width: 30%;">监控指标</th>
+                <th style="width: 20%;">告警阈值</th>
+                <th style="width: 30%;">处理方式</th>
+            </tr>
+            <tr>
+                <td>系统可用性</td>
+                <td>API成功率</td>
+                <td>&lt;99.9%</td>
+                <td>自动告警+值班人员响应</td>
+            </tr>
+            <tr>
+                <td>查询性能</td>
+                <td>P95响应时间</td>
+                <td>&gt;3秒</td>
+                <td>慢查询分析+SQL优化</td>
+            </tr>
+            <tr>
+                <td>AI引擎</td>
+                <td>NLP准确率</td>
+                <td>&lt;90%</td>
+                <td>模型回滚+紧急优化</td>
+            </tr>
+            <tr>
+                <td>安全监控</td>
+                <td>异常查询检测</td>
+                <td>敏感操作</td>
+                <td>实时拦截+安全审计</td>
+            </tr>
+            <tr>
+                <td>资源监控</td>
+                <td>CPU/内存/磁盘</td>
+                <td>&gt;80%利用率</td>
+                <td>自动扩容+资源优化</td>
+            </tr>
+        </table>
+
+        <h2>8.4 持续优化计划</h2>
+        <p>系统上线后，将建立持续优化机制，确保系统能力不断提升：</p>
+        <ul>
+            <li><strong>数据飞轮：</strong>收集用户查询日志，持续扩充训练数据，提升NLP理解准确率</li>
+            <li><strong>词库维护：</strong>定期更新业务词库和同义词映射，适应业务术语演变</li>
+            <li><strong>模型迭代：</strong>每季度进行模型效果评估，必要时升级模型版本</li>
+            <li><strong>功能扩展：</strong>根据用户反馈逐步引入图表可视化、报告自动生成等高级功能</li>
+            <li><strong>体验优化：</strong>A/B测试驱动交互优化，持续提升用户满意度</li>
+        </ul>
+
+        <!-- 签名区域 -->
+        <div class="signature">
+            <div class="signature-item">
+                <div class="signature-line"></div>
+                <p>编制人</p>
+                <p style="font-size: 10pt; color: #888;">日期：</p>
+            </div>
+            <div class="signature-item">
+                <div class="signature-line"></div>
+                <p>审核人</p>
+                <p style="font-size: 10pt; color: #888;">日期：</p>
+            </div>
+            <div class="signature-item">
+                <div class="signature-line"></div>
+                <p>批准人</p>
+                <p style="font-size: 10pt; color: #888;">日期：</p>
+            </div>
+        </div>
+
+        <!-- 文档结束标记 -->
+        <div style="margin-top: 80px; text-align: center; color: #888; font-size: 10pt; border-top: 1px solid #ccc; padding-top: 20px;">
+            <p>— 文档结束 —</p>
+            <p style="margin-top: 10px;">智能问数系统（IQS）技术方案报告</p>
+            <p style="margin-top: 5px; font-size: 9pt;">文档编号：IQS-TECH-2026-001 | 版本：V1.0</p>
+            <p style="margin-top: 15px; font-size: 9pt; color: #aaa;"><strong>此报告由王鑫3使用ai生成，如有雷同纯属巧合</strong></p>
+        </div>
+    </div>
+</body>
+</html>
