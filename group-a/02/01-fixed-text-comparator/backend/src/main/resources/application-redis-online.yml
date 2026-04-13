@@ -1,0 +1,66 @@
+# ========================================
+# 在线 Redis 配置示例
+# 选择一个你使用的服务，取消注释并填写信息
+# ========================================
+
+spring:
+  redis:
+    # ========================================
+    # 选项 1: Redis Cloud（推荐）
+    # 注册: https://redis.com/try-free/
+    # ========================================
+    # host: redis-12345.c1.us-east-1-2.ec2.redns.redis-cloud.com
+    # port: 12345
+    # password: your_password_here
+    # ssl:
+    #   enabled: true
+    
+    # ========================================
+    # 选项 2: Upstash
+    # 注册: https://upstash.com/
+    # ========================================
+    # host: your-database.upstash.io
+    # port: 6379
+    # password: your_access_token_here
+    # ssl:
+    #   enabled: true
+    
+    # ========================================
+    # 选项 3: Aiven
+    # 注册: https://aiven.io/redis
+    # ========================================
+    # host: your-redis.aivencloud.com
+    # port: 12345
+    # password: your_password_here
+    # ssl:
+    #   enabled: true
+    
+    # ========================================
+    # 选项 4: 本地 Redis（默认）
+    # ========================================
+    host: localhost
+    port: 6379
+    password: 
+    ssl:
+      enabled: false
+    
+    # 通用配置
+    database: 0
+    timeout: 5000
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: 3000
+
+server:
+  port: 8080
+
+app:
+  config-dir: configs
+
+logging:
+  level:
+    com.comparator: DEBUG
+    org.springframework.data.redis: INFO
