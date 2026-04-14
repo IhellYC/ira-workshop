@@ -1,0 +1,344 @@
+<!--
+┌──────────────────────────────────────────────────────────────┐
+│                                                              │
+│   ██████╗ ███████╗ ██████╗ ██████╗ ██████╗ ███████╗          │
+│   ██╔══██╗██╔════╝██╔════╝██╔═══██╗██╔══██╗██╔════╝          │
+│   ██████╔╝█████╗  ██║     ██║   ██║██║  ██║███████╗          │
+│   ██╔══██╗██╔══╝  ██║     ██║   ██║██║  ██║╚════██║          │
+│   ██║  ██║███████╗╚██████╗╚██████╔╝██████╔╝███████║          │
+│   ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝          │
+│                                                              │
+│              QwenPaw 智能分析报告系统                         │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+-->
+
+<!--
+╔══════════════════════════════════════════════════════════════════╗
+║                      🎨 主视觉样式规范                            ║
+╠══════════════════════════════════════════════════════════════════╣
+║  主色调：浅蓝色系 (#4A90E2, #5BA0F2, #7EC8E3, #B8D4E8)          ║
+║  辅助色：深蓝 (#2C5F8D), 白色 (#FFFFFF), 浅灰 (#F5F7FA)         ║
+║  强调色：科技蓝 (#00D4FF), 渐变蓝 (线性渐变)                     ║
+║  文字色：深灰 (#333333), 中灰 (#666666), 浅灰 (#999999)          ║
+╚══════════════════════════════════════════════════════════════════╝
+-->
+
+<style>
+/* 主视觉样式 - 浅蓝色主题 */
+:root {
+  --primary-blue: #4A90E2;
+  --primary-light: #7EC8E3;
+  --primary-lighter: #B8D4E8;
+  --primary-dark: #2C5F8D;
+  --accent-cyan: #00D4FF;
+  --bg-light: #F5F7FA;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+}
+
+h1 { 
+  color: var(--primary-blue);
+  border-bottom: 3px solid var(--primary-light);
+  padding-bottom: 10px;
+}
+h2 { 
+  color: var(--primary-dark);
+  border-left: 4px solid var(--primary-blue);
+  padding-left: 12px;
+}
+h3 { 
+  color: var(--primary-blue);
+}
+table th {
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-light));
+  color: white;
+}
+code, pre {
+  background: linear-gradient(135deg, #E8F4FC, #F0F8FF);
+  border: 1px solid var(--primary-lighter);
+}
+blockquote {
+  border-left: 4px solid var(--primary-light);
+  background: linear-gradient(90deg, #F0F8FF, #FFFFFF);
+}
+</style>
+
+<div align="center">
+
+# 📊 项目分析报告
+
+**QwenPaw Project Analysis Report**
+
+<div style="background: linear-gradient(135deg, #4A90E2, #7EC8E3, #B8D4E8); padding: 2px; border-radius: 8px;">
+<div style="background: white; padding: 15px; border-radius: 6px;">
+
+| | | |
+|:---:|:---:|:---:|
+| 🌊 **清新** | 🔷 **专业** | 💎 **可靠** |
+
+</div>
+</div>
+
+---
+
+*报告生成时间：{{DATE}}*  
+*项目版本：{{VERSION}}*
+
+</div>
+
+---
+
+<!-- 蓝色分隔线 -->
+<div style="height: 3px; background: linear-gradient(90deg, #4A90E2, #7EC8E3, #B8D4E8, #7EC8E3, #4A90E2); border-radius: 2px; margin: 20px 0;"></div>
+
+## 一、项目概述
+
+> 💡 **核心摘要**
+> 
+> QwenPaw 是一个智能代理框架，支持多通道接入、技能管理、安全防护等核心功能。
+
+<!-- 核心指标卡片 -->
+<div style="display: flex; gap: 10px; margin: 15px 0;">
+<div style="flex: 1; background: linear-gradient(135deg, #E8F4FC, #F0F8FF); border-left: 4px solid #4A90E2; padding: 10px; border-radius: 0 8px 8px 0;">
+<strong>🎯 指标一</strong><br/>
+<span style="font-size: 24px; color: #4A90E2;">{{VALUE}}</span>
+</div>
+<div style="flex: 1; background: linear-gradient(135deg, #E8F4FC, #F0F8FF); border-left: 4px solid #5BA0F2; padding: 10px; border-radius: 0 8px 8px 0;">
+<strong>⚡ 指标二</strong><br/>
+<span style="font-size: 24px; color: #4A90E2;">{{VALUE}}</span>
+</div>
+<div style="flex: 1; background: linear-gradient(135deg, #E8F4FC, #F0F8FF); border-left: 4px solid #7EC8E3; padding: 10px; border-radius: 0 8px 8px 0;">
+<strong>📊 指标三</strong><br/>
+<span style="font-size: 24px; color: #4A90E2;">{{VALUE}}</span>
+</div>
+<div style="flex: 1; background: linear-gradient(135deg, #E8F4FC, #F0F8FF); border-left: 4px solid #B8D4E8; padding: 10px; border-radius: 0 8px 8px 0;">
+<strong>✅ 指标四</strong><br/>
+<span style="font-size: 24px; color: #4A90E2;">{{VALUE}}</span>
+</div>
+</div>
+
+---
+
+<!-- 蓝色分隔线 -->
+<div style="height: 3px; background: linear-gradient(90deg, #4A90E2, #7EC8E3, #B8D4E8, #7EC8E3, #4A90E2); border-radius: 2px; margin: 20px 0;"></div>
+
+## 二、系统架构
+
+### 2.1 架构概览
+
+<!-- 架构图容器 - 浅蓝背景 -->
+<div style="background: linear-gradient(135deg, #F0F8FF, #E8F4FC); border: 2px solid #B8D4E8; border-radius: 12px; padding: 20px; margin: 15px 0;">
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ░░░░░░░░░░░░░░░░ 系统架构图 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│    ┌──────────┐    ┌──────────┐    ┌──────────┐            │
+│    │  前端层  │───▶│  服务层  │───▶│  数据层  │            │
+│    │ Console  │    │  Agents  │    │  Models  │            │
+│    └──────────┘    └──────────┘    └──────────┘            │
+│         │              │              │                    │
+│         ▼              ▼              ▼                    │
+│    ┌──────────┐    ┌──────────┐    ┌──────────┐            │
+│    │   API    │    │  Tools   │    │  Memory  │            │
+│    │ Gateway  │    │  Skills  │    │  Store   │            │
+│    └──────────┘    └──────────┘    └──────────┘            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+</div>
+
+### 2.2 模块功能矩阵
+
+| 模块名称 | 功能描述 | 技术栈 |
+|:--------:|:--------:|:------:|
+| **Agents** | 智能代理核心 | Python, LangChain |
+| **Console** | 管理控制台 | React, TypeScript |
+| **Providers** | 模型提供商 | OpenAI, Anthropic, Gemini |
+| **Security** | 安全防护 | Python |
+| **Tunnel** | 隧道服务 | Cloudflare |
+
+### 2.3 技术栈
+
+| 层级 | 技术 | 说明 |
+|:----:|:----:|:----:|
+| 前端 | React + TypeScript | 管理控制台界面 |
+| 后端 | Python | 核心业务逻辑 |
+| AI引擎 | LangChain | Agent 框架 |
+| 存储 | SQLite / PostgreSQL | 数据持久化 |
+| 部署 | Docker | 容器化部署 |
+
+---
+
+<!-- 蓝色分隔线 -->
+<div style="height: 3px; background: linear-gradient(90deg, #4A90E2, #7EC8E3, #B8D4E8, #7EC8E3, #4A90E2); border-radius: 2px; margin: 20px 0;"></div>
+
+## 三、核心功能
+
+### 3.1 Agent 系统
+
+> 🎯 **功能说明**
+> 
+> Agent 系统是项目的核心，负责处理用户请求、协调工具调用、管理对话上下文。
+
+<!-- Agent流程图 - 浅蓝主题 -->
+<div style="background: linear-gradient(135deg, #F0F8FF, #E8F4FC); border: 2px solid #7EC8E3; border-radius: 12px; padding: 20px; margin: 15px 0;">
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ░░░░░░░░░░░░░░░░░ Agent 处理流程 ░░░░░░░░░░░░░░░░░░░░░░░░░ │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   用户请求 ──▶ 意图识别 ──▶ 任务规划 ──▶ 工具调度           │
+│      │           │           │           │                 │
+│      ▼           ▼           ▼           ▼                 │
+│   [输入层]   [理解层]    [决策层]    [执行层]              │
+│      │           │           │           │                 │
+│      └───────────┴───────────┴───────────┘                 │
+│                         │                                   │
+│                         ▼                                   │
+│              ┌─────────────────┐                            │
+│              │   结果整合输出   │                            │
+│              └─────────────────┘                            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+</div>
+
+### 3.2 技能系统
+
+| 技能类型 | 功能说明 |
+|:--------:|:--------:|
+| 文件操作 | 读写、搜索、管理文件系统 |
+| 代码分析 | 代码理解、重构、调试 |
+| 网络请求 | API调用、数据抓取 |
+| 数据处理 | 数据转换、分析、可视化 |
+
+### 3.3 多通道接入
+
+| 通道类型 | 协议 | 说明 |
+|:--------:|:----:|:----:|
+| Web Console | HTTP/WebSocket | 网页管理界面 |
+| CLI | 命令行 | 终端交互 |
+| API | REST | 接口调用 |
+| MCP | Model Context Protocol | 模型上下文协议 |
+
+---
+
+<!-- 蓝色分隔线 -->
+<div style="height: 3px; background: linear-gradient(90deg, #4A90E2, #7EC8E3, #B8D4E8, #7EC8E3, #4A90E2); border-radius: 2px; margin: 20px 0;"></div>
+
+## 四、安全机制
+
+### 4.1 安全检查项
+
+<!-- 安全检查卡片 -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 15px 0;">
+<div style="background: linear-gradient(135deg, #F0F8FF, #FFFFFF); border: 1px solid #B8D4E8; border-left: 4px solid #4A90E2; padding: 12px; border-radius: 0 8px 8px 0;">
+✅ <strong>API 密钥加密存储</strong>
+</div>
+<div style="background: linear-gradient(135deg, #F0F8FF, #FFFFFF); border: 1px solid #B8D4E8; border-left: 4px solid #5BA0F2; padding: 12px; border-radius: 0 8px 8px 0;">
+✅ <strong>输入数据校验</strong>
+</div>
+<div style="background: linear-gradient(135deg, #F0F8FF, #FFFFFF); border: 1px solid #B8D4E8; border-left: 4px solid #7EC8E3; padding: 12px; border-radius: 0 8px 8px 0;">
+✅ <strong>权限访问控制</strong>
+</div>
+<div style="background: linear-gradient(135deg, #F0F8FF, #FFFFFF); border: 1px solid #B8D4E8; border-left: 4px solid #B8D4E8; padding: 12px; border-radius: 0 8px 8px 0;">
+✅ <strong>日志审计完整</strong>
+</div>
+<div style="background: linear-gradient(135deg, #F0F8FF, #FFFFFF); border: 1px solid #B8D4E8; border-left: 4px solid #4A90E2; padding: 12px; border-radius: 0 8px 8px 0;">
+✅ <strong>敏感信息脱敏</strong>
+</div>
+</div>
+
+### 4.2 安全架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      安全防护层级                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐      │
+│   │  Tool Guard │   │ Skill Scan  │   │ Secret Store│      │
+│   │  工具守护   │   │  技能扫描   │   │  密钥存储   │      │
+│   └─────────────┘   └─────────────┘   └─────────────┘      │
+│                                                             │
+│   ┌─────────────────────────────────────────────────┐      │
+│   │              Approval System 审批系统            │      │
+│   └─────────────────────────────────────────────────┘      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+<!-- 蓝色分隔线 -->
+<div style="height: 3px; background: linear-gradient(90deg, #4A90E2, #7EC8E3, #B8D4E8, #7EC8E3, #4A90E2); border-radius: 2px; margin: 20px 0;"></div>
+
+## 五、项目结构
+
+```
+QwenPaw/
+├── console/           # React 前端控制台
+│   ├── src/
+│   │   ├── api/       # API 接口
+│   │   ├── components/# 组件
+│   │   ├── pages/     # 页面
+│   │   └── stores/    # 状态管理
+│   └── package.json
+│
+├── src/qwenpaw/       # Python 后端核心
+│   ├── agents/        # Agent 系统
+│   │   ├── skills/    # 技能模块
+│   │   ├── tools/     # 工具集
+│   │   ├── memory/    # 记忆系统
+│   │   └── hooks/     # 钩子函数
+│   ├── app/           # 应用层
+│   │   ├── routers/   # API 路由
+│   │   ├── channels/  # 接入通道
+│   │   └── mcp/       # MCP 协议
+│   ├── providers/     # LLM 提供商
+│   ├── security/      # 安全模块
+│   └── cli/           # 命令行工具
+│
+├── deploy/            # 部署配置
+├── scripts/           # 脚本工具
+└── tests/             # 测试用例
+```
+
+---
+
+<!-- 蓝色分隔线 -->
+<div style="height: 3px; background: linear-gradient(90deg, #4A90E2, #7EC8E3, #B8D4E8, #7EC8E3, #4A90E2); border-radius: 2px; margin: 20px 0;"></div>
+
+## 六、总结
+
+<div align="center">
+
+```
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║  🔒 数据安全 | ⚡ 高效响应 | 🌐 全球部署 | 🤖 智能驱动   ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+```
+
+</div>
+
+---
+
+<div align="center">
+
+**—— 报告结束 ——**
+
+*本报告由 QwenPaw 生成*
+
+<!-- 页脚装饰 -->
+<div style="height: 4px; background: linear-gradient(90deg, transparent, #4A90E2, #7EC8E3, #B8D4E8, #7EC8E3, #4A90E2, transparent); border-radius: 2px; margin-top: 20px;"></div>
+
+</div>

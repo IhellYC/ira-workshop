@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kronos 项目分析报告</title>
+    <style>
+        /* 主视觉样式 - 浅蓝色主题 */
+        :root {
+            --primary-blue: #4A90E2;
+            --primary-light: #7EC8E3;
+            --primary-lighter: #B8D4E8;
+            --primary-dark: #2C5F8D;
+            --accent-cyan: #00D4FF;
+            --bg-light: #F5F7FA;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.8;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #F0F8FF 0%, #FFFFFF 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(74, 144, 226, 0.1);
+            padding: 40px;
+        }
+
+        /* 头部样式 */
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-light), var(--primary-lighter));
+            border-radius: 12px;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .header-badges {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        /* 分隔线 */
+        .divider {
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-light), var(--primary-lighter), var(--primary-light), var(--primary-blue));
+            border-radius: 2px;
+            margin: 30px 0;
+        }
+
+        /* 标题样式 */
+        h1 {
+            color: var(--primary-blue);
+            border-bottom: 3px solid var(--primary-light);
+            padding-bottom: 10px;
+            margin: 30px 0 20px 0;
+        }
+
+        h2 {
+            color: var(--primary-dark);
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 12px;
+            margin: 25px 0 15px 0;
+        }
+
+        h3 {
+            color: var(--primary-blue);
+            margin: 20px 0 10px 0;
+        }
+
+        /* 指标卡片 */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #E8F4FC, #F0F8FF);
+            border-left: 4px solid var(--primary-blue);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .metric-card:nth-child(2) { border-left-color: #5BA0F2; }
+        .metric-card:nth-child(3) { border-left-color: var(--primary-light); }
+        .metric-card:nth-child(4) { border-left-color: var(--primary-lighter); }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+        }
+
+        .metric-label {
+            font-weight: bold;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            color: var(--primary-blue);
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--primary-light);
+            background: linear-gradient(90deg, #F0F8FF, #FFFFFF);
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+
+        blockquote strong {
+            color: var(--primary-blue);
+        }
+
+        /* 架构图容器 */
+        .architecture-box {
+            background: linear-gradient(135deg, #F0F8FF, #E8F4FC);
+            border: 2px solid var(--primary-lighter);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .architecture-box pre {
+            background: transparent;
+            border: none;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-light));
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--primary-lighter);
+        }
+
+        tr:nth-child(even) {
+            background: #F8FBFF;
+        }
+
+        tr:hover {
+            background: #E8F4FC;
+        }
+
+        /* 安全检查卡片 */
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .security-card {
+            background: linear-gradient(135deg, #F0F8FF, #FFFFFF);
+            border: 1px solid var(--primary-lighter);
+            border-left: 4px solid var(--primary-blue);
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .security-card:nth-child(2) { border-left-color: #5BA0F2; }
+        .security-card:nth-child(3) { border-left-color: var(--primary-light); }
+        .security-card:nth-child(4) { border-left-color: var(--primary-lighter); }
+        .security-card:nth-child(5) { border-left-color: var(--primary-blue); }
+
+        /* 代码块 */
+        code {
+            background: linear-gradient(135deg, #E8F4FC, #F0F8FF);
+            border: 1px solid var(--primary-lighter);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            color: var(--primary-dark);
+        }
+
+        pre {
+            background: linear-gradient(135deg, #E8F4FC, #F0F8FF);
+            border: 1px solid var(--primary-lighter);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* 列表样式 */
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        /* 特性标签 */
+        .feature-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .feature-tag {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-light));
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid var(--primary-lighter);
+        }
+
+        .footer-decoration {
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--primary-blue), var(--primary-light), var(--primary-lighter), var(--primary-light), var(--primary-blue), transparent);
+            border-radius: 2px;
+            margin-bottom: 20px;
+        }
+
+        /* 流程步骤 */
+        .process-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .process-step {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-light));
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .process-step::after {
+            content: '→';
+            position: absolute;
+            right: -25px;
+            color: var(--primary-blue);
+        }
+
+        .process-step:last-child::after {
+            content: none;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .header-badges {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>📊 Kronos 项目分析报告</h1>
+            <p class="subtitle">Kronos Financial K-Line Foundation Model</p>
+            <div class="header-badges">
+                <span class="badge">🌊 金融时序</span>
+                <span class="badge">🔷 开源模型</span>
+                <span class="badge">💎 预测分析</span>
+            </div>
+        </div>
+
+        <p style="text-align: center; color: var(--text-muted);">
+            <em>报告生成时间：2026年4月13日</em> | <em>项目版本：v1.0</em>
+        </p>
+
+        <div class="divider"></div>
+
+        <!-- 一、项目概述 -->
+        <h2>一、项目概述</h2>
+        
+        <blockquote>
+            <strong>💡 核心摘要</strong><br><br>
+            Kronos 是首个开源金融K线（蜡烛图）基础模型，专为"金融市场的语言"——K线序列而设计。与通用时序模型不同，Kronos 针对金融数据的高噪声特性进行专门优化，采用两阶段框架：先通过专用分词器将连续多维K线数据量化为分层离散令牌，再用大型自回归Transformer在这些令牌上进行预训练，从而实现对多种量化任务的统一建模。
+        </blockquote>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">🎯 全球交易所</div>
+                <div class="metric-value">45+</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">⚡ 模型规格</div>
+                <div class="metric-value">3种</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">📊 开源协议</div>
+                <div class="metric-value">MIT</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">✅ 多语言支持</div>
+                <div class="metric-value">8+</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 二、系统架构 -->
+        <h2>二、系统架构</h2>
+
+        <h3>2.1 架构概览</h3>
+        
+        <div class="architecture-box">
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                    Kronos 两阶段架构                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐        ┌─────────────────┐                │
+│  │   第一阶段       │───────▶│   第二阶段       │                │
+│  │  Tokenizer      │        │  Transformer    │                │
+│  │  量化与重建      │        │  自回归预测      │                │
+│  └─────────────────┘        └─────────────────┘                │
+│           │                          │                          │
+│           ▼                          ▼                          │
+│  ┌─────────────────┐        ┌─────────────────┐                │
+│  │ • 编码器Transformer│       │ • 层次化嵌入     │                │
+│  │ • BSQuantizer   │        │ • 依赖感知层     │                │
+│  │ • 解码器Transformer│       │ • 双头输出      │                │
+│  │ • 层次化令牌 s1/s2│        │ • 时间嵌入      │                │
+│  └─────────────────┘        └─────────────────┘                │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+        </div>
+
+        <h3>2.2 核心组件矩阵</h3>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>组件名称</th>
+                    <th>功能描述</th>
+                    <th>技术特点</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>KronosTokenizer</strong></td>
+                    <td>专用分词器，将OHLCV量化为离散令牌</td>
+                    <td>编码器-解码器 + BSQuantizer</td>
+                </tr>
+                <tr>
+                    <td><strong>Kronos</strong></td>
+                    <td>解码器型基础模型，自回归预测</td>
+                    <td>RoPE注意力 + RMSNorm</td>
+                </tr>
+                <tr>
+                    <td><strong>KronosPredictor</strong></td>
+                    <td>高层封装，简化预测流程</td>
+                    <td>数据预处理 + 批量推理</td>
+                </tr>
+                <tr>
+                    <td><strong>BSQuantizer</strong></td>
+                    <td>二进制球面量化器</td>
+                    <td>熵正则 + 动量重构损失</td>
+                </tr>
+                <tr>
+                    <td><strong>Web UI</strong></td>
+                    <td>交互式预测界面</td>
+                    <td>Flask + Plotly.js</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>2.3 技术栈</h3>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>层级</th>
+                    <th>技术</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>深度学习框架</td>
+                    <td>PyTorch 2.0+</td>
+                    <td>模型训练与推理</td>
+                </tr>
+                <tr>
+                    <td>模型生态</td>
+                    <td>Hugging Face Transformers</td>
+                    <td>模型加载与保存</td>
+                </tr>
+                <tr>
+                    <td>数据处理</td>
+                    <td>pandas 2.2.2, NumPy</td>
+                    <td>金融数据处理</td>
+                </tr>
+                <tr>
+                    <td>Web后端</td>
+                    <td>Flask, CORS</td>
+                    <td>REST API服务</td>
+                </tr>
+                <tr>
+                    <td>可视化</td>
+                    <td>Matplotlib, Plotly.js</td>
+                    <td>K线图展示</td>
+                </tr>
+                <tr>
+                    <td>分布式训练</td>
+                    <td>torch.distributed</td>
+                    <td>DDP并行训练</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="divider"></div>
+
+        <!-- 三、核心技术创新 -->
+        <h2>三、核心技术创新</h2>
+
+        <h3>3.1 二进制球面量化（BSQuantizer）</h3>
+        
+        <blockquote>
+            <strong>🎯 创新点</strong><br><br>
+            将连续向量归一化后映射到超球面的二进制码字空间，结合熵正则与动量重构损失，生成层次化离散索引。
+        </blockquote>
+
+        <div class="architecture-box">
+<pre>
+输入z ──▶ 归一化 ──▶ 符号量化 z_q=sign(z) ──▶ 按维度L2缩放
+                                              │
+                                              ▼
+                                    是否半量化?
+                                    /         \
+                                   是          否
+                                  /             \
+                         按s1_bits切分       映射整体索引
+                        /           \
+                       ▼             ▼
+                  映射s1索引      映射s2索引
+                       \           /
+                        \         /
+                         ▼       ▼
+                      计算BSQ损失
+                             │
+                             ▼
+                    返回量化z_q与索引
+</pre>
+        </div>
+
+        <h3>3.2 层次化嵌入与依赖感知</h3>
+        
+        <ul>
+            <li><strong>层次化嵌入（HierarchicalEmbedding）</strong>：将s1/s2令牌分别查表嵌入，再经融合投影得到统一d_model表示</li>
+            <li><strong>依赖感知层（DependencyAwareLayer）</strong>：使用交叉注意力，以s1嵌入为查询，上下文为键/值，实现条件增强</li>
+            <li><strong>双头输出（DualHead）</strong>：s1_head直接输出s1令牌分布；s2_head在依赖感知层条件下输出s2令牌分布</li>
+        </ul>
+
+        <h3>3.3 时间嵌入设计</h3>
+        
+        <div class="architecture-box">
+<pre>
+stamp: [B,T,5] ──▶ 按列切分
+                      │
+        ┌─────────────┼─────────────┬─────────────┬─────────────┐
+        ▼             ▼             ▼             ▼             ▼
+   分钟嵌入      小时嵌入      星期嵌入       日嵌入       月嵌入
+        │             │             │             │             │
+        └─────────────┴─────────────┴─────────────┴─────────────┘
+                                    │
+                                    ▼
+                              累加时间嵌入
+                                    │
+                                    ▼
+                              加到序列嵌入
+</pre>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 四、模型家族 -->
+        <h2>四、模型家族与规格</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>模型</th>
+                    <th>上下文长度</th>
+                    <th>参数量规模</th>
+                    <th>适用场景</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Kronos-mini</strong></td>
+                    <td>2048</td>
+                    <td>轻量级</td>
+                    <td>资源受限环境、快速原型</td>
+                </tr>
+                <tr>
+                    <td><strong>Kronos-small</strong></td>
+                    <td>512</td>
+                    <td>中等规模</td>
+                    <td>平衡性能与效率</td>
+                </tr>
+                <tr>
+                    <td><strong>Kronos-base</strong></td>
+                    <td>512</td>
+                    <td>大规模</td>
+                    <td>高精度预测需求</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="divider"></div>
+
+        <!-- 五、快速开始 -->
+        <h2>五、快速开始</h2>
+
+        <h3>5.1 安装与环境准备</h3>
+        
+        <ul>
+            <li>Python版本要求：3.10及以上</li>
+            <li>PyTorch 2.0+</li>
+            <li>安装依赖：<code>pip install -r requirements.txt</code></li>
+        </ul>
+
+        <h3>5.2 数据格式</h3>
+        
+        <blockquote>
+            <strong>📋 输入要求</strong><br><br>
+            pandas DataFrame，至少包含 ['open','high','low','close'] 列；可选 ['volume','amount']。时间戳列需可被pandas解析为datetime类型。
+        </blockquote>
+
+        <h3>5.3 预测流程</h3>
+        
+        <div class="process-steps">
+            <span class="process-step">加载模型</span>
+            <span class="process-step">准备数据</span>
+            <span class="process-step">调用预测</span>
+            <span class="process-step">获取结果</span>
+        </div>
+
+        <div class="architecture-box">
+<pre>
+用户 ──▶ 提供CSV数据与时间戳 ──▶ KronosPredictor
+                                        │
+                                        ▼
+                              数据校验与归一化
+                                        │
+                                        ▼
+                              Tokenizer编码历史序列
+                                        │
+                                        ▼
+                              自回归采样解码s1/s2
+                                        │
+                                        ▼
+                              反归一化与重建DataFrame
+                                        │
+                                        ▼
+                              返回预测结果DataFrame
+</pre>
+        </div>
+
+        <h3>5.4 采样参数</h3>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>参数</th>
+                    <th>说明</th>
+                    <th>建议值</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>temperature (T)</code></td>
+                    <td>控制预测随机性</td>
+                    <td>0.5-1.0</td>
+                </tr>
+                <tr>
+                    <td><code>top_p</code></td>
+                    <td>核采样概率阈值</td>
+                    <td>0.9-1.0</td>
+                </tr>
+                <tr>
+                    <td><code>top_k</code></td>
+                    <td>Top-k采样数量</td>
+                    <td>50-100</td>
+                </tr>
+                <tr>
+                    <td><code>sample_count</code></td>
+                    <td>采样路径数量</td>
+                    <td>1-10</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="divider"></div>
+
+        <!-- 六、微调工具链 -->
+        <h2>六、微调工具链</h2>
+
+        <h3>6.1 两阶段训练流程</h3>
+        
+        <div class="architecture-box">
+<pre>
+开始 ──▶ 读取配置 ──▶ 数据准备(Qlib) ──▶ 分词器微调(重构+熵损失)
+                                                      │
+                                                      ▼
+                                              冻结分词器
+                                                      │
+                                                      ▼
+                                        预测器微调(交叉熵) ──▶ 回测评估 ──▶ 结束
+</pre>
+        </div>
+
+        <h3>6.2 训练组件</h3>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>组件</th>
+                    <th>功能</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>QlibDataset</code></td>
+                    <td>滑动窗口构造样本，预计算时间特征</td>
+                </tr>
+                <tr>
+                    <td><code>train_tokenizer.py</code></td>
+                    <td>分词器微调，重构误差+BSQ损失</td>
+                </tr>
+                <tr>
+                    <td><code>train_predictor.py</code></td>
+                    <td>预测器微调，交叉熵损失</td>
+                </tr>
+                <tr>
+                    <td><code>training_utils.py</code></td>
+                    <td>DDP分布式训练与日志工具</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="divider"></div>
+
+        <!-- 七、性能考量 -->
+        <h2>七、性能考量</h2>
+
+        <div class="security-grid">
+            <div class="security-card">
+                <strong>⚡ 计算资源</strong><br>
+                推理建议使用GPU（CUDA/MPS）；微调推荐多GPU分布式训练
+            </div>
+            <div class="security-card">
+                <strong>📏 序列长度</strong><br>
+                小/基础模型最大上下文512；mini模型可达2048
+            </div>
+            <div class="security-card">
+                <strong>🎯 采样策略</strong><br>
+                温度与Top-p控制预测多样性；样本数越多越稳定
+            </div>
+            <div class="security-card">
+                <strong>📊 数据质量</strong><br>
+                缺失值与异常值会显著影响归一化与预测效果
+            </div>
+            <div class="security-card">
+                <strong>🚀 批量预测</strong><br>
+                predict_batch充分利用GPU并行，提升多序列吞吐
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 八、项目结构 -->
+        <h2>八、项目结构</h2>
+
+        <div class="architecture-box">
+<pre>
+Kronos/
+├── model/                    # 核心模型实现
+│   ├── __init__.py
+│   ├── kronos.py            # KronosTokenizer / Kronos / KronosPredictor
+│   └── module.py            # BSQuantizer / Transformer块 / 嵌入与注意力
+│
+├── finetune/                # 微调流程
+│   ├── config.py            # 训练配置
+│   ├── dataset.py           # QlibDataset
+│   ├── train_tokenizer.py   # 分词器微调
+│   ├── train_predictor.py   # 预测器微调
+│   └── utils/
+│       └── training_utils.py # DDP/日志工具
+│
+├── finetune_csv/            # CSV格式微调工具链
+│   ├── finetune_base_model.py
+│   ├── finetune_tokenizer.py
+│   └── configs/
+│
+├── examples/                # 使用示例
+│   ├── prediction_example.py
+│   ├── prediction_batch_example.py
+│   ├── prediction_wo_vol_example.py
+│   └── data/
+│       └── XSHG_5min_600977.csv
+│
+├── webui/                   # Web界面
+│   ├── app.py               # Flask后端
+│   ├── templates/
+│   │   └── index.html
+│   └── prediction_results/
+│
+├── tests/                   # 测试用例
+├── requirements.txt
+└── README.md
+</pre>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 九、总结 -->
+        <h2>九、总结</h2>
+
+        <blockquote>
+            <strong>🎯 核心优势</strong><br><br>
+            Kronos 通过"两阶段分词+层次化令牌+自回归建模"的创新设计，有效应对金融时间序列的高噪声挑战，实现了从K线序列到多维预测的统一建模。项目提供了从预训练模型、分词器微调到Web UI可视化的完整工具链，既适合初学者快速上手，也为有经验的开发者提供了深入定制与扩展的空间。
+        </blockquote>
+
+        <div class="feature-tags">
+            <span class="feature-tag">🔒 数据安全</span>
+            <span class="feature-tag">⚡ 高效响应</span>
+            <span class="feature-tag">🌐 全球部署</span>
+            <span class="feature-tag">🤖 智能驱动</span>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #F0F8FF, #E8F4FC); border-radius: 12px;">
+            <pre style="background: transparent; border: none; text-align: center; font-size: 14px;">
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║  🔒 数据安全 | ⚡ 高效响应 | 🌐 全球部署 | 🤖 智能驱动   ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+            </pre>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <div class="footer-decoration"></div>
+            <p><strong>—— 报告结束 ——</strong></p>
+            <p style="color: var(--text-muted); margin-top: 10px;">
+                <em>本报告基于 Kronos 项目文档生成</em><br>
+                <em>实时演示：<a href="https://shiyu-coder.github.io/Kronos-demo/" style="color: var(--primary-blue);">https://shiyu-coder.github.io/Kronos-demo/</a></em>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
