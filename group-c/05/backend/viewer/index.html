@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rin-wiki · 知识库浏览器</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+/* ===== Reset & Base ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+  --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;--accent2:#3fb950;
+  --tag-bg:#1f6feb22;--tag-border:#1f6feb55;
+  --sidebar-w:280px;
+}
+html{font-size:15px}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ===== Sidebar ===== */
+#sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
+#sidebar-header h1{font-size:1.2rem;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+#sidebar-header h1 .icon{font-size:1.4rem}
+#search{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:.9rem;outline:none}
+#search:focus{border-color:var(--accent)}
+#search::placeholder{color:var(--text2)}
+
+#sidebar-nav{flex:1;overflow-y:auto;padding:8px 0}
+.cat-group{margin-bottom:4px}
+.cat-header{padding:6px 16px;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+.cat-header:hover{color:var(--text)}
+.cat-header .arrow{transition:transform .2s;font-size:.65rem}
+.cat-header.collapsed .arrow{transform:rotate(-90deg)}
+.cat-items{overflow:hidden}
+.cat-items.collapsed{display:none}
+.nav-item{padding:5px 16px 5px 28px;font-size:.85rem;cursor:pointer;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid transparent;transition:all .15s}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:var(--bg3)}
+.nav-item .status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px}
+.status-mature{background:var(--accent2)}.status-developing{background:#d29922}.status-current{background:var(--accent)}.status-evergreen{background:#8b949e}
+
+/* ===== Stats bar ===== */
+#stats{padding:12px 16px;border-top:1px solid var(--border);font-size:.75rem;color:var(--text2)}
+
+/* ===== Content ===== */
+#content{flex:1;overflow-y:auto;padding:0}
+#article{max-width:820px;margin:0 auto;padding:40px 48px 80px}
+
+/* ===== Page Header ===== */
+.page-meta{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.page-meta h1{font-size:1.8rem;margin-bottom:8px}
+.page-meta .meta-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.8rem;color:var(--text2)}
+.page-meta .meta-row .type-badge{background:var(--accent);color:#fff;padding:2px 8px;border-radius:10px;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em}
+.page-meta .tag{background:var(--tag-bg);border:1px solid var(--tag-border);padding:1px 8px;border-radius:10px;font-size:.72rem;color:var(--accent);cursor:pointer}
+.page-meta .tag:hover{background:var(--accent);color:#fff}
+
+/* ===== Markdown Body ===== */
+.md-body h1{font-size:1.6rem;margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.md-body h2{font-size:1.3rem;margin:20px 0 10px;color:var(--accent)}
+.md-body h3{font-size:1.1rem;margin:16px 0 8px}
+.md-body p{line-height:1.7;margin:8px 0}
+.md-body ul,.md-body ol{margin:8px 0 8px 24px;line-height:1.7}
+.md-body li{margin:2px 0}
+.md-body blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:12px 0;background:var(--bg2);border-radius:0 6px 6px 0;color:var(--text2)}
+.md-body blockquote p{margin:4px 0}
+.md-body code{background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:.88em;font-family:'Cascadia Code','Fira Code',monospace}
+.md-body pre{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;margin:12px 0}
+.md-body pre code{background:none;padding:0}
+.md-body table{border-collapse:collapse;width:100%;margin:12px 0}
+.md-body th,.md-body td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+.md-body th{background:var(--bg2);font-weight:600}
+.md-body tr:nth-child(even){background:var(--bg2)}
+.md-body hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+.md-body img{max-width:100%;border-radius:8px}
+.md-body .wiki-link{color:var(--accent);cursor:pointer;border-bottom:1px dashed var(--accent)}
+.md-body .wiki-link:hover{color:#fff;background:var(--accent);border-radius:2px;padding:0 2px;border-bottom:none}
+.md-body .wiki-link.dead{color:#f85149;border-bottom-color:#f85149}
+
+/* ===== Callout (obsidian style) ===== */
+.callout{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:6px;padding:12px 16px;margin:12px 0}
+.callout-title{font-weight:600;margin-bottom:4px;color:var(--accent)}
+
+/* ===== Related pages ===== */
+.related-section{margin-top:32px;padding-top:16px;border-top:1px solid var(--border)}
+.related-section h3{font-size:.9rem;color:var(--text2);margin-bottom:8px}
+.related-chips{display:flex;flex-wrap:wrap;gap:6px}
+.related-chip{background:var(--bg2);border:1px solid var(--border);padding:4px 12px;border-radius:14px;font-size:.8rem;cursor:pointer;transition:all .15s}
+.related-chip:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ===== Home page ===== */
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:20px}
+.home-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+.home-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.home-card h3{font-size:.95rem;margin-bottom:6px;color:var(--accent)}
+.home-card .count{font-size:.8rem;color:var(--text2)}
+.home-card .desc{font-size:.8rem;color:var(--text2);margin-top:6px}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--text2)}
+
+/* ===== Mobile ===== */
+@media(max-width:768px){
+  #sidebar{position:fixed;z-index:100;transform:translateX(-100%);transition:transform .3s}
+  #sidebar.open{transform:translateX(0)}
+  #article{padding:20px 16px 60px}
+  .menu-toggle{display:block !important}
+}
+.menu-toggle{display:none;position:fixed;top:12px;left:12px;z-index:101;background:var(--bg2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:1.2rem;line-height:36px;text-align:center}
+</style>
+</head>
+<body>
+<button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<aside id="sidebar">
+  <div id="sidebar-header">
+    <h1><span class="icon">📚</span> Rin-wiki</h1>
+    <input type="text" id="search" placeholder="搜索页面…">
+  </div>
+  <nav id="sidebar-nav"></nav>
+  <div id="stats"></div>
+</aside>
+
+<main id="content">
+  <div id="article"></div>
+</main>
+
+<script>
+let DATA = null;
+let pageMap = {};
+
+const CATEGORY_LABELS = {
+  'root': '📄 核心页面',
+  'concepts': '💡 概念',
+  'entities': '🏷️ 实体',
+  'sources': '📰 源',
+  'comparisons': '⚖️ 对比',
+  'questions': '❓ 问题',
+  'meta': '⚙️ 元数据',
+  'goals': '🎯 目标',
+  'learning': '📖 学习',
+  'people': '👤 人际',
+  'areas': '🗂️ 领域',
+  'resources': '📦 资源'
+};
+const CAT_ORDER = ['root','concepts','entities','sources','comparisons','questions','meta','goals','learning','people','areas','resources'];
+
+async function init() {
+  const resp = await fetch('wiki-data.json');
+  DATA = await resp.json();
+  pageMap = {};
+  for (const p of DATA.pages) {
+    pageMap[p.slug] = p;
+    pageMap[p.name] = p;
+    pageMap[p.name.toLowerCase()] = p;
+  }
+  buildSidebar();
+  // Check hash
+  const hash = location.hash.slice(1);
+  if (hash && pageMap[decodeURIComponent(hash)]) {
+    navigate(decodeURIComponent(hash));
+  } else {
+    showHome();
+  }
+}
+
+function buildSidebar(filter = '') {
+  const nav = document.getElementById('sidebar-nav');
+  const lf = filter.toLowerCase();
+  let html = '';
+  const ordered = CAT_ORDER.filter(c => DATA.categories[c]);
+  // Add any unlisted categories
+  for (const c of Object.keys(DATA.categories)) {
+    if (!ordered.includes(c)) ordered.push(c);
+  }
+
+  let totalShown = 0;
+  for (const cat of ordered) {
+    const slugs = DATA.categories[cat] || [];
+    const pages = slugs.map(s => pageMap[s]).filter(Boolean);
+    const filtered = lf ? pages.filter(p =>
+      p.title.toLowerCase().includes(lf) ||
+      p.name.toLowerCase().includes(lf) ||
+      p.tags.some(t => t.toLowerCase().includes(lf))
+    ) : pages;
+    if (filtered.length === 0) continue;
+    totalShown += filtered.length;
+
+    const label = CATEGORY_LABELS[cat] || `📁 ${cat}`;
+    html += `<div class="cat-group">`;
+    html += `<div class="cat-header" onclick="toggleCat(this)"><span class="arrow">▼</span> ${label} <span style="margin-left:auto;font-size:.7rem">${filtered.length}</span></div>`;
+    html += `<div class="cat-items">`;
+    for (const p of filtered) {
+      const statusClass = `status-${p.status}`;
+      html += `<div class="nav-item" data-slug="${p.slug}" onclick="navigate('${p.slug.replace(/'/g,"\\'")}')">
+        <span class="status-dot ${statusClass}"></span>${p.title}
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+  nav.innerHTML = html;
+  document.getElementById('stats').textContent = `共 ${DATA.pages.length} 个页面 · ${Object.keys(DATA.categories).length} 个分类`;
+}
+
+function toggleCat(el) {
+  el.classList.toggle('collapsed');
+  el.nextElementSibling.classList.toggle('collapsed');
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  buildSidebar(e.target.value);
+});
+
+function resolveWikiLink(name) {
+  // Remove [[ ]] and pipe
+  const clean = name.replace(/^\[\[/, '').replace(/\]\]$/, '');
+  const parts = clean.split('|');
+  const target = parts[0].trim();
+  const display = (parts[1] || parts[0]).trim();
+  return { target, display };
+}
+
+function renderMarkdown(body) {
+  // Pre-process: convert [[wikilinks]] to special markers
+  let processed = body.replace(/\[\[([^\]]+)\]\]/g, (m, inner) => {
+    const { target, display } = resolveWikiLink(`[[${inner}]]`);
+    const page = pageMap[target] || pageMap[target.split('/').pop()];
+    const cls = page ? 'wiki-link' : 'wiki-link dead';
+    const slug = page ? page.slug : '';
+    return `<span class="${cls}" onclick="navigate('${slug.replace(/'/g, "\\'")}')">${display}</span>`;
+  });
+
+  // Convert obsidian callouts > [!type] to html
+  processed = processed.replace(/>\s*\[!(\w+)\]\s*(.*)\n((?:>.*\n?)*)/g, (m, type, title, content) => {
+    const cleanContent = content.replace(/^>\s?/gm, '').trim();
+    return `<div class="callout"><div class="callout-title">${type.toUpperCase()}: ${title}</div>${cleanContent}</div>\n`;
+  });
+
+  return marked.parse(processed);
+}
+
+function navigate(slug) {
+  const page = pageMap[slug];
+  if (!page) return;
+
+  location.hash = slug;
+  document.getElementById('sidebar').classList.remove('open');
+
+  // Update active state
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.slug === slug);
+  });
+
+  const typeBadgeColors = {
+    concept: '#58a6ff', entity: '#3fb950', source: '#d29922',
+    comparison: '#bc8cff', question: '#f0883e', meta: '#8b949e', overview: '#8b949e'
+  };
+  const badgeColor = typeBadgeColors[page.type] || '#8b949e';
+
+  let html = `<div class="page-meta">`;
+  html += `<h1>${page.title}</h1>`;
+  html += `<div class="meta-row">`;
+  html += `<span class="type-badge" style="background:${badgeColor}">${page.type}</span>`;
+  if (page.status && page.status !== 'unknown') html += `<span>状态: ${page.status}</span>`;
+  if (page.updated) html += `<span>更新: ${page.updated}</span>`;
+  if (page.created) html += `<span>创建: ${page.created}</span>`;
+  html += `</div>`;
+  if (page.tags.length > 0) {
+    html += `<div class="meta-row" style="margin-top:6px">`;
+    for (const t of page.tags) {
+      html += `<span class="tag" onclick="document.getElementById('search').value='${t}';buildSidebar('${t}')">${t}</span>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+
+  // Body
+  html += `<div class="md-body">${renderMarkdown(page.body)}</div>`;
+
+  // Related pages
+  if (page.related.length > 0) {
+    html += `<div class="related-section"><h3>相关页面</h3><div class="related-chips">`;
+    for (const r of page.related) {
+      const { target, display } = resolveWikiLink(r);
+      const rp = pageMap[target] || pageMap[target.split('/').pop()];
+      if (rp) {
+        html += `<div class="related-chip" onclick="navigate('${rp.slug.replace(/'/g, "\\'")}')">${display}</div>`;
+      } else {
+        html += `<div class="related-chip" style="opacity:.5">${display}</div>`;
+      }
+    }
+    html += `</div></div>`;
+  }
+
+  document.getElementById('article').innerHTML = html;
+  document.getElementById('content').scrollTop = 0;
+}
+
+function showHome() {
+  let html = `<div class="page-meta"><h1>📚 Rin-wiki 知识库</h1>
+    <div class="meta-row">共 ${DATA.pages.length} 个页面 · ${Object.keys(DATA.categories).length} 个分类 · 已摄取 3 个源</div></div>`;
+
+  html += `<div class="md-body"><p>这是基于 <strong>LLM Wiki 模式</strong> 构建的个人知识管理系统。使用 Claude 和 Obsidian 构建持久、复利式增长的知识库。</p></div>`;
+
+  html += `<h2 style="color:var(--accent);margin:20px 0 4px">分类浏览</h2>`;
+  html += `<div class="home-grid">`;
+  for (const cat of CAT_ORDER) {
+    const slugs = DATA.categories[cat];
+    if (!slugs || slugs.length === 0) continue;
+    const label = CATEGORY_LABELS[cat] || cat;
+    const pages = slugs.map(s => pageMap[s]).filter(Boolean);
+    const titles = pages.slice(0, 3).map(p => p.title).join(', ');
+    html += `<div class="home-card" onclick="navigateCategory('${cat}')">
+      <h3>${label}</h3>
+      <div class="count">${pages.length} 个页面</div>
+      <div class="desc">${titles}…</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // Recent updates
+  const recent = [...DATA.pages].filter(p => p.updated).sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, 8);
+  html += `<h2 style="color:var(--accent);margin:28px 0 12px">最近更新</h2>`;
+  html += `<div style="display:flex;flex-direction:column;gap:4px">`;
+  for (const p of recent) {
+    const typeBadgeColors = { concept:'#58a6ff',entity:'#3fb950',source:'#d29922',comparison:'#bc8cff',question:'#f0883e',meta:'#8b949e' };
+    const bc = typeBadgeColors[p.type]||'#8b949e';
+    html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg2);border-radius:6px;cursor:pointer;border:1px solid var(--border)" onclick="navigate('${p.slug.replace(/'/g,"\\'")}')">
+      <span class="type-badge" style="background:${bc};padding:2px 8px;border-radius:10px;font-size:.7rem;color:#fff;text-transform:uppercase">${p.type}</span>
+      <span style="flex:1">${p.title}</span>
+      <span style="font-size:.75rem;color:var(--text2)">${p.updated}</span>
+    </div>`;
+  }
+  html += `</div>`;
+
+  document.getElementById('article').innerHTML = html;
+}
+
+function navigateCategory(cat) {
+  const slugs = DATA.categories[cat];
+  if (slugs && slugs.length > 0) {
+    const firstPage = pageMap[slugs[0]];
+    // Filter sidebar and navigate to first
+    document.getElementById('search').value = '';
+    buildSidebar('');
+    if (firstPage) navigate(firstPage.slug);
+  }
+}
+
+window.addEventListener('hashchange', () => {
+  const hash = decodeURIComponent(location.hash.slice(1));
+  if (hash && pageMap[hash]) navigate(hash);
+  else showHome();
+});
+
+init();
+</script>
+</body>
+</html>

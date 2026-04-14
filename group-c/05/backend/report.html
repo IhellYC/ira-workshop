@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wiki-Plus 项目技术报告</title>
+  <style>
+    :root {
+      --color-primary: #E60012;
+      --color-primary-dark: #CC0010;
+      --color-secondary: #003B7F;
+      --color-secondary-dark: #002D62;
+      --color-gold: #D4A843;
+      --color-orange: #FF6B35;
+      --color-green: #28A745;
+      --color-text-dark: #333333;
+      --color-text-base: #666666;
+      --color-text-light: #999999;
+      --color-border: #E5E5E5;
+      --color-background: #F5F7FA;
+      --color-white: #FFFFFF;
+      --color-success: #28A745;
+      --color-warning: #FFC107;
+      --color-error: #DC3545;
+      --color-info: #17A2B8;
+      --font-family-zh: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+      --font-family-en: "Roboto", "Helvetica Neue", Arial, sans-serif;
+      --font-family-number: "DIN Alternate", "Roboto Mono", monospace;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --spacing-xxl: 48px;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.12);
+      --transition-base: 0.3s ease;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-family-zh);
+      color: var(--color-text-base);
+      background-color: var(--color-background);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    /* 导航栏 */
+    .navbar {
+      background-color: var(--color-secondary);
+      height: 70px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+    }
+    .navbar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .navbar__brand {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--color-white);
+      text-decoration: none;
+    }
+    .navbar__brand span { color: var(--color-primary); }
+    .navbar__nav {
+      list-style: none;
+      display: flex;
+      gap: 4px;
+    }
+    .navbar__nav a {
+      color: rgba(255,255,255,0.9);
+      font-size: 14px;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition-base);
+    }
+    .navbar__nav a:hover, .navbar__nav a.active {
+      color: #fff;
+      background-color: rgba(230, 0, 18, 0.8);
+    }
+    /* 容器 */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    /* 主内容区 */
+    main {
+      margin-top: 70px;
+      padding-top: 40px;
+      padding-bottom: 60px;
+    }
+    /* Hero 区域 */
+    .hero {
+      background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+      padding: 64px 0;
+      margin: -40px -9999px 48px;
+      padding-left: 9999px;
+      padding-right: 9999px;
+      color: var(--color-white);
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+    .hero p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.85);
+      max-width: 700px;
+      margin: 0 auto 24px;
+    }
+    .hero__stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-top: 32px;
+    }
+    .hero__stat-item {
+      text-align: center;
+    }
+    .hero__stat-number {
+      font-family: var(--font-family-number);
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--color-primary);
+      display: block;
+    }
+    .hero__stat-label {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+    /* 标题样式 */
+    h1 { font-size: 36px; font-weight: 700; color: var(--color-text-dark); line-height: 1.3; }
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-text-dark);
+      line-height: 1.35;
+      margin: 48px 0 24px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--color-primary);
+      display: inline-block;
+    }
+    h2::after { content: ''; display: block; clear: both; }
+    .section-title-wrap { margin: 48px 0 24px; }
+    h3 {
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--color-text-dark);
+      line-height: 1.4;
+      margin: 32px 0 16px;
+    }
+    h4 {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--color-text-dark);
+      line-height: 1.4;
+      margin: 24px 0 12px;
+    }
+    p { margin-bottom: 16px; font-size: 14px; line-height: 1.8; }
+    /* 卡片 */
+    .card {
+      background-color: var(--color-white);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 24px;
+      transition: all var(--transition-base);
+      margin-bottom: 24px;
+    }
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+    .card__header {
+      border-bottom: 2px solid var(--color-border);
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+    .card__title {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--color-text-dark);
+    }
+    /* 网格 */
+    .grid { display: grid; gap: 24px; }
+    .grid--2 { grid-template-columns: repeat(2, 1fr); }
+    .grid--3 { grid-template-columns: repeat(3, 1fr); }
+    .grid--4 { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 992px) {
+      .grid--3, .grid--4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .grid--2, .grid--3, .grid--4 { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 28px; }
+      h2 { font-size: 24px; }
+      h3 { font-size: 20px; }
+      .navbar__nav { display: none; }
+      .hero__stats { flex-wrap: wrap; gap: 24px; }
+    }
+    /* 徽章 */
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 12px;
+    }
+    .badge--primary { background-color: rgba(230,0,18,0.1); color: var(--color-primary); }
+    .badge--secondary { background-color: rgba(0,59,127,0.1); color: var(--color-secondary); }
+    .badge--success { background-color: rgba(40,167,69,0.1); color: var(--color-success); }
+    .badge--warning { background-color: rgba(255,193,7,0.15); color: #856404; }
+    .badge--info { background-color: rgba(23,162,184,0.1); color: var(--color-info); }
+    .badge--gold { background-color: rgba(212,168,67,0.15); color: #8a6d1b; }
+    /* 表格 */
+    .table-wrap { overflow-x: auto; margin-bottom: 24px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--color-white);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    thead { background-color: var(--color-background); }
+    th {
+      padding: 14px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-dark);
+      text-align: left;
+      border-bottom: 2px solid var(--color-border);
+    }
+    td {
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--color-text-base);
+      border-bottom: 1px solid var(--color-border);
+    }
+    tbody tr:hover { background-color: var(--color-background); }
+    /* 代码块 */
+    code {
+      background-color: rgba(0,59,127,0.06);
+      color: var(--color-secondary);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 13px;
+      font-family: "Roboto Mono", "Consolas", monospace;
+    }
+    pre {
+      background-color: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin-bottom: 24px;
+      font-family: "Roboto Mono", "Consolas", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    pre code { background: none; color: inherit; padding: 0; }
+    /* 列表 */
+    ul, ol { margin: 0 0 16px 24px; }
+    li { margin-bottom: 8px; line-height: 1.7; }
+    li strong { color: var(--color-text-dark); }
+    /* 流程图模拟 */
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+    .flow__step {
+      background: var(--color-white);
+      border: 2px solid var(--color-secondary);
+      border-radius: var(--radius-md);
+      padding: 16px 24px;
+      text-align: center;
+      font-weight: 500;
+      color: var(--color-secondary);
+      min-width: 140px;
+      position: relative;
+    }
+    .flow__step--primary {
+      background: var(--color-secondary);
+      color: var(--color-white);
+    }
+    .flow__step--accent {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: var(--color-white);
+    }
+    .flow__arrow {
+      font-size: 24px;
+      color: var(--color-secondary);
+      padding: 0 8px;
+    }
+    /* 特性卡片 */
+    .feature-card {
+      background: var(--color-white);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border-top: 4px solid var(--color-secondary);
+      transition: all var(--transition-base);
+    }
+    .feature-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+    .feature-card--red { border-top-color: var(--color-primary); }
+    .feature-card--green { border-top-color: var(--color-green); }
+    .feature-card--gold { border-top-color: var(--color-gold); }
+    .feature-card--info { border-top-color: var(--color-info); }
+    .feature-card--orange { border-top-color: var(--color-orange); }
+    .feature-card__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    .feature-card__icon--blue { background: rgba(0,59,127,0.1); color: var(--color-secondary); }
+    .feature-card__icon--red { background: rgba(230,0,18,0.1); color: var(--color-primary); }
+    .feature-card__icon--green { background: rgba(40,167,69,0.1); color: var(--color-green); }
+    .feature-card__icon--gold { background: rgba(212,168,67,0.15); color: var(--color-gold); }
+    .feature-card__icon--info { background: rgba(23,162,184,0.1); color: var(--color-info); }
+    .feature-card__icon--orange { background: rgba(255,107,53,0.1); color: var(--color-orange); }
+    .feature-card__title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--color-text-dark);
+      margin-bottom: 8px;
+    }
+    .feature-card__desc {
+      font-size: 14px;
+      color: var(--color-text-base);
+      line-height: 1.7;
+    }
+    /* 高亮块 */
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(0,59,127,0.04) 0%, rgba(230,0,18,0.04) 100%);
+      border-left: 4px solid var(--color-secondary);
+      padding: 20px 24px;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin: 24px 0;
+    }
+    .highlight-box--warning {
+      border-left-color: var(--color-warning);
+      background: rgba(255,193,7,0.06);
+    }
+    .highlight-box--success {
+      border-left-color: var(--color-success);
+      background: rgba(40,167,69,0.06);
+    }
+    .highlight-box--danger {
+      border-left-color: var(--color-error);
+      background: rgba(220,53,69,0.06);
+    }
+    .highlight-box__title {
+      font-weight: 600;
+      color: var(--color-text-dark);
+      margin-bottom: 8px;
+    }
+    /* 架构图 */
+    .arch-diagram {
+      background: var(--color-white);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      box-shadow: var(--shadow-sm);
+      margin: 24px 0;
+    }
+    .arch-layers {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .arch-layer {
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      position: relative;
+    }
+    .arch-layer__label {
+      position: absolute;
+      top: -12px;
+      left: 16px;
+      background: var(--color-white);
+      padding: 0 8px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .arch-layer--instructions { border-color: var(--color-primary); }
+    .arch-layer--instructions .arch-layer__label { color: var(--color-primary); }
+    .arch-layer--knowledge { border-color: var(--color-secondary); }
+    .arch-layer--knowledge .arch-layer__label { color: var(--color-secondary); }
+    .arch-layer--source { border-color: var(--color-green); }
+    .arch-layer--source .arch-layer__label { color: var(--color-green); }
+    .arch-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .arch-item {
+      background: var(--color-background);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-dark);
+    }
+    .arch-arrow-down {
+      text-align: center;
+      font-size: 24px;
+      color: var(--color-text-light);
+      padding: 4px 0;
+    }
+    /* 技能表格 */
+    .skill-tag {
+      display: inline-block;
+      background: rgba(0,59,127,0.08);
+      color: var(--color-secondary);
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-family: "Roboto Mono", monospace;
+    }
+    /* 页脚 */
+    .footer {
+      background-color: var(--color-secondary-dark);
+      color: rgba(255,255,255,0.7);
+      padding: 40px 0 24px;
+    }
+    .footer__content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 32px;
+    }
+    .footer__brand {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--color-white);
+      margin-bottom: 8px;
+    }
+    .footer__links { list-style: none; margin: 0; padding: 0; }
+    .footer__links li { margin-bottom: 8px; }
+    .footer__links a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: color var(--transition-base);
+    }
+    .footer__links a:hover { color: var(--color-white); }
+    .footer__bottom {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: 24px;
+      padding-top: 16px;
+      text-align: center;
+      font-size: 12px;
+    }
+    /* TOC */
+    .toc {
+      background: var(--color-white);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 32px;
+    }
+    .toc__title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-text-dark);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--color-primary);
+    }
+    .toc__list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .toc__list a {
+      color: var(--color-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 6px 12px;
+      display: block;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition-base);
+    }
+    .toc__list a:hover {
+      background: rgba(0,59,127,0.06);
+      color: var(--color-primary);
+    }
+    .toc__list .toc__number {
+      font-family: var(--font-family-number);
+      color: var(--color-primary);
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    /* 分隔线 */
+    .divider {
+      border: none;
+      height: 1px;
+      background: var(--color-border);
+      margin: 48px 0;
+    }
+    /* 侧边标记 */
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .section-tag__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-primary);
+    }
+    .section-tag__text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    /* 数据指标卡片 */
+    .metric-card {
+      background: var(--color-white);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .metric-card__value {
+      font-family: var(--font-family-number);
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--color-secondary);
+    }
+    .metric-card__label {
+      font-size: 13px;
+      color: var(--color-text-light);
+      margin-top: 4px;
+    }
+    /* 时间轴 */
+    .timeline { position: relative; padding-left: 32px; margin: 24px 0; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--color-border);
+    }
+    .timeline__item {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .timeline__item::before {
+      content: '';
+      position: absolute;
+      left: -27px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--color-secondary);
+      border: 2px solid var(--color-white);
+      box-shadow: 0 0 0 2px var(--color-secondary);
+    }
+    .timeline__title {
+      font-weight: 600;
+      color: var(--color-text-dark);
+      margin-bottom: 4px;
+    }
+    .timeline__desc {
+      font-size: 13px;
+      color: var(--color-text-base);
+    }
+    /* 回到顶部 */
+    .back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 48px;
+      height: 48px;
+      background: var(--color-secondary);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-base);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .back-to-top:hover {
+      background: var(--color-primary);
+      box-shadow: 0 4px 12px rgba(230, 0, 18, 0.3);
+    }
+    .back-to-top.visible { display: flex; }
+  </style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="navbar">
+  <div class="container">
+    <a class="navbar__brand" href="#">Wiki<span>-Plus</span> 技术报告</a>
+    <ul class="navbar__nav">
+      <li><a href="#overview">项目概述</a></li>
+      <li><a href="#architecture">核心架构</a></li>
+      <li><a href="#agent">Agent 系统</a></li>
+      <li><a href="#knowledge">知识管理</a></li>
+      <li><a href="#visual">可视化</a></li>
+      <li><a href="#api">API 参考</a></li>
+      <li><a href="#ops">部署运维</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>Wiki-Plus 项目技术报告</h1>
+      <p>基于 LLM Wiki 模式的个人知识管理与学习笔记系统 &mdash; 通过 Claude 与 Obsidian 的协作，构建持久、可复利增长的知识库。</p>
+      <div class="hero__stats">
+        <div class="hero__stat-item">
+          <span class="hero__stat-number">3</span>
+          <span class="hero__stat-label">层级架构</span>
+        </div>
+        <div class="hero__stat-item">
+          <span class="hero__stat-number">10</span>
+          <span class="hero__stat-label">Agent 技能</span>
+        </div>
+        <div class="hero__stat-item">
+          <span class="hero__stat-number">6</span>
+          <span class="hero__stat-label">平台集成</span>
+        </div>
+        <div class="hero__stat-item">
+          <span class="hero__stat-number">5</span>
+          <span class="hero__stat-label">模板类型</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 目录 -->
+    <div class="toc">
+      <div class="toc__title">目录导航</div>
+      <ul class="toc__list">
+        <li><a href="#overview"><span class="toc__number">01</span>项目概述</a></li>
+        <li><a href="#architecture"><span class="toc__number">02</span>核心架构</a></li>
+        <li><a href="#agent"><span class="toc__number">03</span>Agent 系统</a></li>
+        <li><a href="#knowledge"><span class="toc__number">04</span>知识管理</a></li>
+        <li><a href="#visual"><span class="toc__number">05</span>可视化与仪表板</a></li>
+        <li><a href="#template"><span class="toc__number">06</span>模板系统</a></li>
+        <li><a href="#api"><span class="toc__number">07</span>API 参考</a></li>
+        <li><a href="#ops"><span class="toc__number">08</span>部署与运维</a></li>
+        <li><a href="#faq"><span class="toc__number">09</span>故障排除</a></li>
+        <li><a href="#appendix"><span class="toc__number">10</span>附录</a></li>
+      </ul>
+    </div>
+
+    <!-- ============================== -->
+    <!-- 01 项目概述 -->
+    <!-- ============================== -->
+    <section id="overview">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 01</span>
+      </div>
+      <h2>项目概述</h2>
+
+      <div class="card">
+        <p>Wiki-Plus 是一个以 <strong>"LLM Wiki 模式"</strong> 为核心的个人知识管理与学习笔记系统，旨在通过 Claude 与 Obsidian 的协作，构建持久、可复利增长的知识库。该项目强调 <strong>"人类策划源 + LLM 维护"</strong> 的理念：人类负责选择高质量的来源并提出问题，LLM 负责阅读、整合、维护与优化知识结构。</p>
+      </div>
+
+      <h3>核心价值</h3>
+      <div class="grid grid--3">
+        <div class="feature-card feature-card--red">
+          <div class="feature-card__icon feature-card__icon--red">&#9881;</div>
+          <div class="feature-card__title">降低维护成本</div>
+          <div class="feature-card__desc">通过自动化维护减少跨引用、矛盾标注与页面更新的人工负担。</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card__icon feature-card__icon--blue">&#9889;</div>
+          <div class="feature-card__title">提升查询效率</div>
+          <div class="feature-card__desc">预编译的知识结构与热缓存使会话启动更快、token 成本更低。</div>
+        </div>
+        <div class="feature-card feature-card--green">
+          <div class="feature-card__icon feature-card__icon--green">&#10003;</div>
+          <div class="feature-card__title">适合中小规模</div>
+          <div class="feature-card__desc">在页面数量处于百级到千级时，无需向量化基础设施即可获得良好体验。</div>
+        </div>
+      </div>
+
+      <h3>适用场景与目标用户</h3>
+      <div class="card">
+        <ul>
+          <li><strong>个人第二大脑与终身学习者</strong> &mdash; 构建可持续增长的知识资产</li>
+          <li><strong>研究助理与内容整理者</strong> &mdash; 高效整理和检索多源信息</li>
+          <li><strong>小团队知识沉淀</strong> &mdash; 跨项目上下文共享与协作</li>
+          <li><strong>低成本知识检索与合成场景</strong> &mdash; 无需复杂基础设施</li>
+        </ul>
+      </div>
+
+      <h3>项目结构</h3>
+      <div class="card">
+        <p>项目采用"知识库驱动 + 多层协作"的组织方式，围绕三个核心目录展开：</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>目录</th><th>职责</th><th>说明</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>.raw/</code></td>
+                <td><span class="badge badge--success">源文档层</span></td>
+                <td>不可变的原始源文档，存放 PDF、Markdown、转录等</td>
+              </tr>
+              <tr>
+                <td><code>wiki/</code></td>
+                <td><span class="badge badge--secondary">知识库层</span></td>
+                <td>LLM 生成的知识库，包含 concepts/、entities/、sources/、meta/ 等</td>
+              </tr>
+              <tr>
+                <td><code>CLAUDE.md</code></td>
+                <td><span class="badge badge--primary">指令层</span></td>
+                <td>定义知识库结构、命名规范与维护流程，指导 LLM 如何工作</td>
+              </tr>
+              <tr>
+                <td><code>skills/</code></td>
+                <td><span class="badge badge--info">技能集合</span></td>
+                <td>Agent 技能定义，包含 wiki、wiki-ingest、wiki-query 等</td>
+              </tr>
+              <tr>
+                <td><code>hooks/</code></td>
+                <td><span class="badge badge--warning">自动化</span></td>
+                <td>会话钩子，驱动热缓存注入与自动提交</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============================== -->
+    <!-- 02 核心架构 -->
+    <!-- ============================== -->
+    <section id="architecture">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 02</span>
+      </div>
+      <h2>核心架构</h2>
+
+      <div class="card">
+        <p>Wiki-Plus 采用 <strong>三层架构</strong>：源文档层、知识库层、指令层。该设计将"读取 / 维护 / 合成"职责清晰分离，使系统在小规模时保持极简，在扩大时仍可平滑演进。</p>
+      </div>
+
+      <h3>三层架构设计</h3>
+      <div class="arch-diagram">
+        <div class="arch-layers">
+          <div class="arch-layer arch-layer--instructions">
+            <span class="arch-layer__label">指令层 (Layer 3)</span>
+            <div class="arch-items">
+              <div class="arch-item">CLAUDE.md (Schema/规则)</div>
+              <div class="arch-item">skills/wiki (总控路由)</div>
+              <div class="arch-item">skills/wiki-ingest (摄取)</div>
+              <div class="arch-item">skills/wiki-query (查询)</div>
+              <div class="arch-item">skills/wiki-lint (健康检查)</div>
+              <div class="arch-item">commands/wiki (初始化)</div>
+            </div>
+          </div>
+          <div class="arch-arrow-down">&darr; 约束与编排 &darr;</div>
+          <div class="arch-layer arch-layer--knowledge">
+            <span class="arch-layer__label">知识库层 (Layer 2)</span>
+            <div class="arch-items">
+              <div class="arch-item">wiki/index.md (主索引)</div>
+              <div class="arch-item">wiki/hot.md (热缓存)</div>
+              <div class="arch-item">wiki/log.md (操作日志)</div>
+              <div class="arch-item">wiki/overview.md (概览)</div>
+              <div class="arch-item">wiki/concepts/ (概念)</div>
+              <div class="arch-item">wiki/entities/ (实体)</div>
+              <div class="arch-item">wiki/sources/ (来源)</div>
+              <div class="arch-item">wiki/meta/ (元信息)</div>
+            </div>
+          </div>
+          <div class="arch-arrow-down">&darr; 摄取与索引 &darr;</div>
+          <div class="arch-layer arch-layer--source">
+            <span class="arch-layer__label">源文档层 (Layer 1)</span>
+            <div class="arch-items">
+              <div class="arch-item">.raw/ 不可变源文档</div>
+              <div class="arch-item">.raw/.manifest.json (差异追踪)</div>
+              <div class="arch-item">文件 / URL / 图片 / 转录</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>热缓存机制</h3>
+      <div class="highlight-box">
+        <div class="highlight-box__title">Hot Cache (wiki/hot.md)</div>
+        <p>约 500 字的会话上下文摘要，包含"最近更新""关键事实""近期变化""活跃主题"。通过 SessionStart 钩子在会话开始时自动注入，显著降低每次会话的 token 成本。</p>
+      </div>
+
+      <div class="card">
+        <h4>热缓存工作流程</h4>
+        <div class="flow">
+          <div class="flow__step flow__step--primary">会话开始</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step">读取 hot.md</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step">命中上下文？</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step">直接回答 / 读取索引</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step flow__step--accent">更新热缓存</div>
+        </div>
+        <ul>
+          <li><strong>更新时机</strong>：每次摄取后、重要查询后、会话结束时</li>
+          <li><strong>格式规则</strong>：固定 frontmatter + 标题，严格控制字数与覆盖写入</li>
+          <li><strong>会话注入</strong>：SessionStart 钩子自动读取，PostCompact 钩子压缩后恢复</li>
+        </ul>
+      </div>
+
+      <h3>数据流处理</h3>
+      <div class="card">
+        <h4>摄取流水线</h4>
+        <div class="timeline">
+          <div class="timeline__item">
+            <div class="timeline__title">1. 差异检查</div>
+            <div class="timeline__desc">通过 .raw/.manifest.json 检查源文件哈希，命中则跳过</div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__title">2. 源获取与清洗</div>
+            <div class="timeline__desc">WebFetch 获取 URL 内容，可选 defuddle 清洗；文件完全读取；图片 OCR 识别</div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__title">3. 内容提取</div>
+            <div class="timeline__desc">创建源摘要页，提取实体与概念，建立交叉引用</div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__title">4. 索引更新</div>
+            <div class="timeline__desc">更新 index.md、域子索引、log.md、hot.md 与 overview.md</div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__title">5. 矛盾检测</div>
+            <div class="timeline__desc">若新信息与现有页面冲突，在双方添加矛盾 callout</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>组件交互关系</h3>
+      <div class="card">
+        <ul>
+          <li><strong>指令层对摄取/查询/整理</strong>存在路由依赖，wiki 技能作为总控路由</li>
+          <li><strong>摄取与查询</strong>均依赖热缓存与索引</li>
+          <li><strong>钩子与自动化</strong>贯穿各流程，保障上下文一致性与版本控制</li>
+          <li><strong>模板系统</strong>为摄取提供标准化页面骨架</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============================== -->
+    <!-- 03 Agent 系统 -->
+    <!-- ============================== -->
+    <section id="agent">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 03</span>
+      </div>
+      <h2>Agent 系统</h2>
+
+      <div class="card">
+        <p>Wiki-Plus Agent 系统围绕"持久化知识库"理念，采用 <strong>"中心化技能 + 分发式执行"</strong> 的架构，通过统一的 Agent 技能体系在多平台之间实现一致的跨平台能力。</p>
+      </div>
+
+      <h3>可用技能一览</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>技能</th><th>触发短语</th><th>功能说明</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="skill-tag">wiki</span></td>
+              <td><code>/wiki</code>, scaffold vault</td>
+              <td>三层架构编排与路由，定义模式、结构与热缓存策略</td>
+            </tr>
+            <tr>
+              <td><span class="skill-tag">wiki-ingest</span></td>
+              <td><code>ingest</code>, ingest this url</td>
+              <td>源摄取、去重、实体/概念/域页面创建与更新</td>
+            </tr>
+            <tr>
+              <td><span class="skill-tag">wiki-query</span></td>
+              <td><code>query</code>, what do you know about</td>
+              <td>快速/标准/深度查询模式，索引与页面读取策略</td>
+            </tr>
+            <tr>
+              <td><span class="skill-tag">wiki-lint</span></td>
+              <td><code>lint the wiki</code>, health check</td>
+              <td>健康检查、报告生成与可视化</td>
+            </tr>
+            <tr>
+              <td><span class="skill-tag">save</span></td>
+              <td><code>/save</code>, file this conversation</td>
+              <td>对话归档为结构化笔记</td>
+            </tr>
+            <tr>
+              <td><span class="skill-tag">autoresearch</span></td>
+              <td><code>autoresearch</code></td>
+              <td>自主研究循环：广泛搜索 &rarr; 填补差距 &rarr; 综合检查</td>
+            </tr>
+            <tr>
+              <td><span class="skill-tag">canvas</span></td>
+              <td><code>/canvas</code>, add to canvas</td>
+              <td>可视化画布管理与自动布局</td>
+            </tr>
+            <tr>
+              <td><span class="skill-tag">defuddle</span></td>
+              <td><code>defuddle</code>, clean this url</td>
+              <td>网页内容清洗</td>
+            </tr>
+            <tr>
+              <td><span class="skill-tag">obsidian-markdown</span></td>
+              <td>obsidian syntax, wikilink</td>
+              <td>Obsidian Markdown 语法规范</td>
+            </tr>
+            <tr>
+              <td><span class="skill-tag">obsidian-bases</span></td>
+              <td>obsidian bases, .base file</td>
+              <td>Obsidian Bases 数据库视图</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>多平台集成</h3>
+      <div class="grid grid--3">
+        <div class="feature-card">
+          <div class="feature-card__title">Claude Code</div>
+          <div class="feature-card__desc">通过 <code>.claude-plugin/</code> 自动发现技能</div>
+        </div>
+        <div class="feature-card feature-card--red">
+          <div class="feature-card__title">Gemini CLI</div>
+          <div class="feature-card__desc">通过符号链接 <code>~/.gemini/skills/</code> 接入</div>
+        </div>
+        <div class="feature-card feature-card--green">
+          <div class="feature-card__title">Codex CLI</div>
+          <div class="feature-card__desc">通过符号链接到对应技能目录</div>
+        </div>
+        <div class="feature-card feature-card--info">
+          <div class="feature-card__title">OpenCode</div>
+          <div class="feature-card__desc">通过 <code>AGENTS.md</code> 配置集成</div>
+        </div>
+        <div class="feature-card feature-card--gold">
+          <div class="feature-card__title">Cursor</div>
+          <div class="feature-card__desc">通过 <code>.cursor/rules/</code> 规则文件</div>
+        </div>
+        <div class="feature-card feature-card--orange">
+          <div class="feature-card__title">Windsurf</div>
+          <div class="feature-card__desc">通过 <code>.windsurf/rules/</code> 规则文件</div>
+        </div>
+      </div>
+
+      <h3>启动流程</h3>
+      <div class="card">
+        <div class="flow">
+          <div class="flow__step flow__step--primary">打开仓库</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step">检查初始化</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step">读取 AGENTS.md</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step">恢复 hot.md</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step flow__step--accent">路由到技能</div>
+        </div>
+      </div>
+
+      <h3>生命周期钩子</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>钩子</th><th>时机</th><th>动作</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge--primary">SessionStart</span></td>
+              <td>会话启动时</td>
+              <td>自动读取 wiki/hot.md 注入上下文</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge--secondary">PostCompact</span></td>
+              <td>上下文压缩后</td>
+              <td>重新读取热缓存，防止上下文丢失</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge--success">PostToolUse</span></td>
+              <td>写入/编辑后</td>
+              <td>自动 git add/commit wiki 与 .raw</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge--warning">Stop</span></td>
+              <td>会话结束时</td>
+              <td>检测变更并提示更新热缓存</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============================== -->
+    <!-- 04 知识管理 -->
+    <!-- ============================== -->
+    <section id="knowledge">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 04</span>
+      </div>
+      <h2>知识管理</h2>
+
+      <div class="card">
+        <p>知识管理围绕 <strong>"智能摄取 &mdash; 查询检索 &mdash; 健康检查"</strong> 三大支柱构建闭环机制，确保知识库的高一致性、高可检索性与可持续演进。</p>
+      </div>
+
+      <h3>智能摄取系统</h3>
+      <div class="grid grid--2">
+        <div class="card">
+          <h4>多格式源处理</h4>
+          <ul>
+            <li><strong>文件摄取</strong>：完全读取源文件，讨论关键要点，创建源摘要与实体/概念页面</li>
+            <li><strong>URL 摄取</strong>：WebFetch 获取，可选 defuddle 清洗，派生 slug 并保存</li>
+            <li><strong>图片/视觉</strong>：OCR 识别与描述，保存至 .raw/images</li>
+            <li><strong>批处理</strong>：逐个执行单源流程，结束后统一交叉引用传递</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>差异追踪与矛盾检测</h4>
+          <ul>
+            <li><strong>差异追踪</strong>：通过 .manifest.json 记录哈希，相同则跳过</li>
+            <li><strong>矛盾标记</strong>：新信息冲突时，在双方页面添加 contradiction callout</li>
+            <li><strong>Token 纪律</strong>：优先热缓存与索引，限制读取页面数量，PATCH 精确编辑</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>查询检索系统</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>模式</th><th>Token 成本</th><th>读取范围</th><th>适用场景</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge--success">Quick</span></td>
+              <td>~1,500</td>
+              <td>仅 hot.md + index.md</td>
+              <td>快速事实、日期查找、简要说明</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge--secondary">Standard</span></td>
+              <td>~3,000</td>
+              <td>hot + index + 3-5 页面</td>
+              <td>日常问题、概念解释、实体介绍</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge--primary">Deep</span></td>
+              <td>~8,000+</td>
+              <td>完整 wiki + 可选网络</td>
+              <td>跨领域比较、综合分析、差距识别</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>健康检查机制</h3>
+      <div class="card">
+        <h4>检查清单</h4>
+        <div class="grid grid--4">
+          <div class="metric-card"><div class="metric-card__value" style="font-size:20px;">&#128270;</div><div class="metric-card__label">孤立页面</div></div>
+          <div class="metric-card"><div class="metric-card__value" style="font-size:20px;">&#128279;</div><div class="metric-card__label">死链接</div></div>
+          <div class="metric-card"><div class="metric-card__value" style="font-size:20px;">&#9888;</div><div class="metric-card__label">陈旧声明</div></div>
+          <div class="metric-card"><div class="metric-card__value" style="font-size:20px;">&#10060;</div><div class="metric-card__label">缺失页面</div></div>
+          <div class="metric-card"><div class="metric-card__value" style="font-size:20px;">&#128196;</div><div class="metric-card__label">Frontmatter 空白</div></div>
+          <div class="metric-card"><div class="metric-card__value" style="font-size:20px;">&#128466;</div><div class="metric-card__label">空章节</div></div>
+          <div class="metric-card"><div class="metric-card__value" style="font-size:20px;">&#128260;</div><div class="metric-card__label">交叉引用缺口</div></div>
+          <div class="metric-card"><div class="metric-card__value" style="font-size:20px;">&#128338;</div><div class="metric-card__label">陈旧索引</div></div>
+        </div>
+      </div>
+
+      <h3>索引与缓存策略</h3>
+      <div class="highlight-box highlight-box--success">
+        <div class="highlight-box__title">分层索引设计</div>
+        <p>主索引 (index.md) + 域子索引 (entities/_index.md, concepts/_index.md, sources/_index.md) + 热缓存 (hot.md) + 日志 (log.md) 构成知识库的导航与检索中枢。摄取后统一更新索引，查询时按层级逐步深入。</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============================== -->
+    <!-- 05 可视化与仪表板 -->
+    <!-- ============================== -->
+    <section id="visual">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 05</span>
+      </div>
+      <h2>可视化与仪表板</h2>
+
+      <div class="card">
+        <p>Wiki-Plus 通过 <strong>"知识图谱 + 可视化画布 + 交互式仪表板"</strong> 三位一体的方式构建可视化体系，从"内容生产"到"可视化洞察"实现高效流转。</p>
+      </div>
+
+      <div class="grid grid--2">
+        <div class="feature-card">
+          <div class="feature-card__icon feature-card__icon--blue">&#128444;</div>
+          <div class="feature-card__title">Canvas 画布</div>
+          <div class="feature-card__desc">以 JSON Canvas 1.0 开放标准定义节点、分组区域与连接边，支持文本、文件、链接等节点类型，配合自动布局算法实现高效组织。</div>
+        </div>
+        <div class="feature-card feature-card--red">
+          <div class="feature-card__icon feature-card__icon--red">&#128202;</div>
+          <div class="feature-card__title">Bases 仪表板</div>
+          <div class="feature-card__desc">采用 Obsidian Bases 嵌入视图，结合过滤器、公式与多视图（表格、列表）实现"实时数据视图"与动态监控。</div>
+        </div>
+        <div class="feature-card feature-card--green">
+          <div class="feature-card__icon feature-card__icon--green">&#127760;</div>
+          <div class="feature-card__title">Graph View 图谱</div>
+          <div class="feature-card__desc">按路径与类型着色，支持隐藏未解析/孤儿节点，提供全局关系浏览与导航。</div>
+        </div>
+        <div class="feature-card feature-card--gold">
+          <div class="feature-card__icon feature-card__icon--gold">&#128506;</div>
+          <div class="feature-card__title">Wiki Map 知识地图</div>
+          <div class="feature-card__desc">以 hub 为中心的层级关系可视化，辅以边标签与颜色编码，实现"宏观图谱 + 微观画布"。</div>
+        </div>
+      </div>
+
+      <h3>数据视图配置</h3>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>视图类型</th><th>适用场景</th><th>关键要素</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge--secondary">表格视图</span></td>
+                <td>近期活动、比较结果、源信息</td>
+                <td>过滤器、多字段排序、分组</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge--success">列表视图</span></td>
+                <td>种子页面、缺失来源的实体、开放问题</td>
+                <td>条件过滤、按状态/时间排序</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge--primary">关系图</span></td>
+                <td>跨文件引用、反链关系、跨模块依赖</td>
+                <td>路径过滤、颜色分组、隐藏孤儿节点</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============================== -->
+    <!-- 06 模板系统 -->
+    <!-- ============================== -->
+    <section id="template">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 06</span>
+      </div>
+      <h2>模板系统</h2>
+
+      <div class="card">
+        <p>模板系统通过 <strong>"模板 + Frontmatter 架构 + CSS 片段"</strong> 的组合，实现多类型页面的一致化生成与维护。采用占位符驱动的变量替换机制，结合统一的元数据模型，确保页面结构稳定、可检索、可扩展。</p>
+      </div>
+
+      <h3>五种标准模板</h3>
+      <div class="grid grid--5" style="grid-template-columns: repeat(5, 1fr);">
+        <div class="feature-card">
+          <div class="feature-card__title">概念</div>
+          <div class="feature-card__desc">定义 &rarr; 原理 &rarr; 重要性 &rarr; 示例 &rarr; 连接 &rarr; 来源</div>
+        </div>
+        <div class="feature-card feature-card--red">
+          <div class="feature-card__title">实体</div>
+          <div class="feature-card__desc">概览 &rarr; 关键事实 &rarr; 连接 &rarr; 来源</div>
+        </div>
+        <div class="feature-card feature-card--green">
+          <div class="feature-card__title">比较</div>
+          <div class="feature-card__desc">概览 &rarr; 对比表格 &rarr; 结论 &rarr; 来源</div>
+        </div>
+        <div class="feature-card feature-card--info">
+          <div class="feature-card__title">问答</div>
+          <div class="feature-card__desc">问题 &rarr; 答案 &rarr; 置信度 &rarr; 相关问题</div>
+        </div>
+        <div class="feature-card feature-card--gold">
+          <div class="feature-card__title">来源</div>
+          <div class="feature-card__desc">摘要 &rarr; 关键声明 &rarr; 实体 &rarr; 概念 &rarr; 笔记</div>
+        </div>
+      </div>
+
+      <h3>Frontmatter 元数据规范</h3>
+      <div class="card">
+        <div class="grid grid--2">
+          <div>
+            <h4>通用字段</h4>
+            <ul>
+              <li><code>type</code> &mdash; 页面类型</li>
+              <li><code>title</code> &mdash; 标题</li>
+              <li><code>created</code> / <code>updated</code> &mdash; 时间戳</li>
+              <li><code>tags</code> &mdash; 标签列表</li>
+              <li><code>status</code> &mdash; 种子/开发中/成熟/常青</li>
+              <li><code>related</code> &mdash; 关联页面</li>
+              <li><code>sources</code> &mdash; 来源引用</li>
+            </ul>
+          </div>
+          <div>
+            <h4>规则约束</h4>
+            <ul>
+              <li>仅使用 <strong>扁平 YAML</strong>，避免嵌套对象</li>
+              <li>日期格式为字符串</li>
+              <li>列表使用短横线格式</li>
+              <li>关联与来源使用 <strong>维基链接</strong></li>
+              <li>标签列表中不使用 <code>#</code></li>
+              <li>每次编辑均更新 updated 时间</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <h3>页面生命周期</h3>
+      <div class="card">
+        <div class="flow">
+          <div class="flow__step" style="background: rgba(40,167,69,0.1); border-color: var(--color-green); color: var(--color-green);">Seed 种子</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step" style="background: rgba(0,59,127,0.1); border-color: var(--color-secondary); color: var(--color-secondary);">Developing 开发中</div>
+          <span class="flow__arrow">&rarr;</span>
+          <div class="flow__step flow__step--accent">Mature 成熟</div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============================== -->
+    <!-- 07 API 参考 -->
+    <!-- ============================== -->
+    <section id="api">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 07</span>
+      </div>
+      <h2>API 参考</h2>
+
+      <div class="card">
+        <p>Wiki-Plus 的 API 层由 <strong>"本地 REST API + MCP 工具链 + 本地服务 (OpenCode)"</strong> 构成，形成"文档读写 + 搜索 + 可视化 + 本地进程"的闭环。</p>
+      </div>
+
+      <h3>REST API</h3>
+      <div class="card">
+        <div class="highlight-box">
+          <div class="highlight-box__title">基础信息</div>
+          <p>地址：<code>https://127.0.0.1:27124</code> &nbsp;|&nbsp; 认证：<code>Authorization: Bearer &lt;API_KEY&gt;</code></p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>操作</th><th>方法</th><th>路径</th><th>说明</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>读取文件</td><td><span class="badge badge--success">GET</span></td><td><code>/vault/{folder}/{path}</code></td><td>读取 Markdown 文件内容</td></tr>
+              <tr><td>创建/替换</td><td><span class="badge badge--secondary">PUT</span></td><td><code>/vault/{folder}/{path}</code></td><td>正文为 Markdown</td></tr>
+              <tr><td>追加内容</td><td><span class="badge badge--info">POST</span></td><td><code>/vault/{folder}/{path}</code></td><td>追加 Markdown 内容</td></tr>
+              <tr><td>补丁</td><td><span class="badge badge--warning">PATCH</span></td><td><code>/vault/{folder}/{path}</code></td><td>编辑 frontmatter/标题段落</td></tr>
+              <tr><td>搜索</td><td><span class="badge badge--info">POST</span></td><td><code>/search/simple/?query={q}</code></td><td>关键词搜索</td></tr>
+              <tr><td>标签列表</td><td><span class="badge badge--success">GET</span></td><td><code>/tags/</code></td><td>列出所有标签</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h3>WebSocket 接口</h3>
+      <div class="card">
+        <ul>
+          <li>通过 OpenCodeClient 与本地 OpenCode 服务器实时交互</li>
+          <li>支持状态变更回调与事件订阅 (starting / running / error / stopped)</li>
+          <li>UI 订阅状态变化，自动刷新界面</li>
+        </ul>
+      </div>
+
+      <h3>本地服务接口 (IPC/Pipe)</h3>
+      <div class="card">
+        <ul>
+          <li><strong>OpenCodeProcess</strong>：定义 start/stop/verifyCommand 方法抽象</li>
+          <li><strong>PosixProcess</strong>：POSIX 系统 detached 方式启动，SIGTERM/SIGKILL 优雅终止</li>
+          <li><strong>WindowsProcess</strong>：PowerShell 查找并终止子进程树，确保完整回收</li>
+          <li>支持自定义命令启动与环境变量注入</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============================== -->
+    <!-- 08 部署与运维 -->
+    <!-- ============================== -->
+    <section id="ops">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 08</span>
+      </div>
+      <h2>部署与运维</h2>
+
+      <div class="card">
+        <p>通过热缓存优先、索引辅助、差异追踪与批处理优化，结合生命周期钩子与自动提交，Wiki-Plus 在生产环境中实现了 <strong>低 token 成本、高一致性与强可追溯性</strong> 的知识管理闭环。</p>
+      </div>
+
+      <h3>部署流程</h3>
+      <div class="card">
+        <div class="timeline">
+          <div class="timeline__item">
+            <div class="timeline__title">1. 克隆仓库</div>
+            <div class="timeline__desc">安装 Claude Code、Obsidian、Git，克隆项目仓库</div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__title">2. 运行初始化脚本</div>
+            <div class="timeline__desc"><code>bin/setup-vault.sh</code> 创建 .obsidian 配置、目录结构、CSS 片段</div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__title">3. 安装社区插件</div>
+            <div class="timeline__desc">Calendar、Thino、Excalidraw、Banners、Dataview、Templater、Obsidian Git</div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__title">4. 多代理适配</div>
+            <div class="timeline__desc"><code>bin/setup-multi-agent.sh</code> 将 skills/ 链接到各平台技能目录</div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__title">5. 验证与使用</div>
+            <div class="timeline__desc">输入 <code>/wiki</code> 初始化知识库，开始摄取与查询</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>性能优化策略</h3>
+      <div class="grid grid--2">
+        <div class="card">
+          <h4>读取策略</h4>
+          <ul>
+            <li>优先读取 hot.md (~500 token)，其次 index.md (~1000 token)</li>
+            <li>使用域子索引聚焦查找，避免全库扫描</li>
+            <li>控制页面长度 (建议不超过 300 行)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>写入策略</h4>
+          <ul>
+            <li>差异追踪避免重复摄取</li>
+            <li>批处理后统一交叉引用与索引更新</li>
+            <li>PATCH 精确编辑，避免整页重写</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>备份与灾难恢复</h3>
+      <div class="highlight-box highlight-box--warning">
+        <div class="highlight-box__title">建议策略</div>
+        <ul>
+          <li><strong>Git 仓库</strong>：定期推送至远程仓库，保留历史提交</li>
+          <li><strong>.obsidian/ 配置</strong>：纳入版本控制或独立备份</li>
+          <li><strong>版本回滚</strong>：通过 Git 标签管理发布版本，manifest.json 定位变更范围</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============================== -->
+    <!-- 09 故障排除 -->
+    <!-- ============================== -->
+    <section id="faq">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 09</span>
+      </div>
+      <h2>故障排除与常见问题</h2>
+
+      <div class="grid grid--2">
+        <div class="card">
+          <h4>安装问题</h4>
+          <div class="highlight-box highlight-box--danger">
+            <p><strong>/wiki 命令提示"未找到"</strong><br>检查插件是否启用，确认在正确目录中打开</p>
+          </div>
+          <div class="highlight-box highlight-box--warning">
+            <p><strong>Graph 视图颜色重置</strong><br>打开 Graph 视图 &rarr; Color groups &rarr; 重新添加，之后永久生效</p>
+          </div>
+          <div class="highlight-box">
+            <p><strong>Excalidraw 加载失败</strong><br>运行 <code>setup-vault.sh</code> 下载 main.js (约 8MB)</p>
+          </div>
+        </div>
+        <div class="card">
+          <h4>功能异常</h4>
+          <div class="highlight-box highlight-box--danger">
+            <p><strong>热缓存未加载</strong><br>检查 hooks 列表，确认 SessionStart 钩子存在且 hot.md 格式正确</p>
+          </div>
+          <div class="highlight-box highlight-box--warning">
+            <p><strong>MCP 无法连接</strong><br>确认 Local REST API 插件已安装，验证端点返回 JSON</p>
+          </div>
+          <div class="highlight-box">
+            <p><strong>自动备份未触发</strong><br>检查 Obsidian Git 插件设置与 PostToolUse 钩子</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>紧急情况应急处理</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>紧急情况</th><th>处理方案</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>热缓存损坏</td><td>删除 wiki/hot.md，重新执行"更新热缓存"命令</td></tr>
+            <tr><td>MCP 连接失败</td><td>降级使用 REST API，检查 Authorization 头与端点</td></tr>
+            <tr><td>自动备份中断</td><td>手动执行 git add/commit，检查插件设置</td></tr>
+            <tr><td>图形视图异常</td><td>重置 Graph 视图设置的颜色组并重新添加</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============================== -->
+    <!-- 10 附录 -->
+    <!-- ============================== -->
+    <section id="appendix">
+      <div class="section-tag">
+        <span class="section-tag__dot"></span>
+        <span class="section-tag__text">Section 10</span>
+      </div>
+      <h2>附录</h2>
+
+      <h3>常用命令速查</h3>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>命令</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>ingest [文件名/URL]</code></td><td>摄取源文件或 URL</td></tr>
+              <tr><td><code>query quick: [问题]</code></td><td>快速查询 (~1500 token)</td></tr>
+              <tr><td><code>query deep: [问题]</code></td><td>深度查询 (~8000+ token)</td></tr>
+              <tr><td><code>what do you know about [主题]</code></td><td>标准查询</td></tr>
+              <tr><td><code>lint the wiki</code></td><td>运行健康检查</td></tr>
+              <tr><td><code>/save</code></td><td>归档当前对话</td></tr>
+              <tr><td><code>/canvas new [名称]</code></td><td>创建新画布</td></tr>
+              <tr><td><code>autoresearch [主题]</code></td><td>自主研究循环</td></tr>
+              <tr><td><code>update hot cache</code></td><td>更新热缓存</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h3>设计原则总结</h3>
+      <div class="grid grid--3">
+        <div class="feature-card">
+          <div class="feature-card__title">知识优先</div>
+          <div class="feature-card__desc">以 wiki 为核心产物，而非对话响应</div>
+        </div>
+        <div class="feature-card feature-card--red">
+          <div class="feature-card__title">热缓存优先</div>
+          <div class="feature-card__desc">优先读取会话上下文，显著降低 Token 成本</div>
+        </div>
+        <div class="feature-card feature-card--green">
+          <div class="feature-card__title">差异追踪</div>
+          <div class="feature-card__desc">通过 manifest 机制避免重复处理，提升吞吐</div>
+        </div>
+        <div class="feature-card feature-card--info">
+          <div class="feature-card__title">标准化模板</div>
+          <div class="feature-card__desc">统一 Frontmatter 与页面结构，确保一致性</div>
+        </div>
+        <div class="feature-card feature-card--gold">
+          <div class="feature-card__title">跨平台兼容</div>
+          <div class="feature-card__desc">通过符号链接与规则文件支持多 Agent 协作</div>
+        </div>
+        <div class="feature-card feature-card--orange">
+          <div class="feature-card__title">可观测性</div>
+          <div class="feature-card__desc">仅追加日志、结构化报告、实时仪表盘支撑监控</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- 页脚 -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__content">
+      <div>
+        <div class="footer__brand">Wiki-Plus 技术报告</div>
+        <p style="font-size: 13px;">基于 LLM Wiki 模式的个人知识管理系统</p>
+      </div>
+      <div>
+        <strong style="color: white; font-size: 14px;">快速导航</strong>
+        <ul class="footer__links">
+          <li><a href="#overview">项目概述</a></li>
+          <li><a href="#architecture">核心架构</a></li>
+          <li><a href="#agent">Agent 系统</a></li>
+          <li><a href="#knowledge">知识管理</a></li>
+        </ul>
+      </div>
+      <div>
+        <strong style="color: white; font-size: 14px;">更多章节</strong>
+        <ul class="footer__links">
+          <li><a href="#visual">可视化</a></li>
+          <li><a href="#api">API 参考</a></li>
+          <li><a href="#ops">部署运维</a></li>
+          <li><a href="#faq">故障排除</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; 2026 Wiki-Plus 技术文档 &mdash; 自动生成于 2026 年 4 月</p>
+    </div>
+  </div>
+</footer>
+
+<!-- 回到顶部 -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+
+<script>
+  // 回到顶部按钮
+  window.addEventListener('scroll', function() {
+    var btn = document.getElementById('backToTop');
+    if (window.scrollY > 400) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  });
+
+  // 导航高亮
+  var sections = document.querySelectorAll('section[id]');
+  var navLinks = document.querySelectorAll('.navbar__nav a');
+  window.addEventListener('scroll', function() {
+    var scrollY = window.scrollY + 100;
+    sections.forEach(function(section) {
+      var top = section.offsetTop;
+      var height = section.offsetHeight;
+      var id = section.getAttribute('id');
+      if (scrollY >= top && scrollY < top + height) {
+        navLinks.forEach(function(link) {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + id) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
