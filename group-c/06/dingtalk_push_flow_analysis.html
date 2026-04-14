@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QwenPaw - 钉钉消息推送流程分析报告</title>
+    <style>
+        /* CSS Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 南方基金品牌色 */
+        :root {
+            --primary-blue: #0052a3;
+            --primary-blue-light: #1a6fcc;
+            --primary-blue-dark: #003d7a;
+            --accent-red: #c9151e;
+            --accent-red-light: #e8374d;
+            --bg-light: #f5f7fa;
+            --bg-white: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: #e5e5e5;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            --success-green: #28a745;
+            --warning-orange: #fd7e14;
+            --info-cyan: #17a2b8;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+        }
+
+        /* 顶部导航栏 */
+        .header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-blue);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .logo-text span {
+            color: var(--accent-red);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 40px;
+        }
+
+        .nav-menu a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: white;
+            border-bottom-color: var(--accent-red);
+        }
+
+        /* Banner区域 */
+        .banner {
+            background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 50%, var(--primary-blue-light) 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .banner-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .banner h1 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .banner h1 span {
+            color: var(--accent-red-light);
+        }
+
+        .banner p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.8;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent-red);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+
+        .section-title {
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section-title h2 {
+            font-size: 26px;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title h2::before {
+            content: '';
+            width: 4px;
+            height: 26px;
+            background: var(--accent-red);
+            border-radius: 2px;
+        }
+
+        /* 概览卡片 */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .overview-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border-top: 3px solid transparent;
+        }
+
+        .overview-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .overview-card.blue { border-top-color: var(--primary-blue); }
+        .overview-card.red { border-top-color: var(--accent-red); }
+        .overview-card.green { border-top-color: var(--success-green); }
+        .overview-card.cyan { border-top-color: var(--info-cyan); }
+
+        .overview-card .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 24px;
+            color: white;
+        }
+
+        .overview-card.blue .icon { background: var(--primary-blue); }
+        .overview-card.red .icon { background: var(--accent-red); }
+        .overview-card.green .icon { background: var(--success-green); }
+        .overview-card.cyan .icon { background: var(--info-cyan); }
+
+        .overview-card h3 {
+            font-size: 28px;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .overview-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* 内容区块 */
+        .content-section {
+            background: white;
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .content-section h3 {
+            font-size: 20px;
+            color: var(--primary-blue);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content-section h3::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--accent-red);
+            border-radius: 2px;
+        }
+
+        /* 功能列表 */
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .feature-item {
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .feature-item h4 {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-item h4 .num {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-blue);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .feature-item p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* 代码块 */
+        .code-block {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .code-block pre {
+            margin: 0;
+            color: #d4d4d4;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .code-block .keyword { color: #569cd6; }
+        .code-block .string { color: #ce9178; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .class { color: #4ec9b0; }
+        .code-block .func { color: #dcdcaa; }
+
+        /* 流程图 */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 30px;
+            background: var(--bg-light);
+            border-radius: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: white;
+            border: 2px solid var(--primary-blue);
+            border-radius: 10px;
+            padding: 15px 25px;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .flow-step h5 {
+            color: var(--primary-blue);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .flow-step p {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .flow-arrow {
+            color: var(--accent-red);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* 决策分支 */
+        .decision-box {
+            background: #fff3cd;
+            border: 2px solid var(--warning-orange);
+            border-radius: 10px;
+            padding: 15px 25px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .decision-box h5 {
+            color: #856404;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        /* 架构图 */
+        .architecture-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .arch-layer {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .arch-layer:last-child {
+            margin-bottom: 0;
+        }
+
+        .arch-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .arch-item.primary {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            color: white;
+        }
+
+        .arch-item.secondary {
+            border: 2px solid var(--primary-blue);
+        }
+
+        .arch-item.success {
+            border: 2px solid var(--success-green);
+            background: #d4edda;
+        }
+
+        .arch-item.warning {
+            border: 2px solid var(--warning-orange);
+            background: #fff3cd;
+        }
+
+        .arch-item h5 {
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .arch-item p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* 状态标签 */
+        .status-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-tag.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-tag.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-tag.info {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        /* 表格 */
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .config-table th,
+        .config-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .config-table th {
+            background: var(--primary-blue);
+            color: white;
+            font-weight: 500;
+        }
+
+        .config-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .config-table code {
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: var(--accent-red);
+        }
+
+        /* API端点样式 */
+        .api-endpoint {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid var(--info-cyan);
+        }
+
+        .api-endpoint code {
+            background: var(--primary-blue);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* 页脚 */
+        .footer {
+            background: var(--primary-blue-dark);
+            color: white;
+            padding: 40px 20px 20px;
+            margin-top: 50px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer p {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .footer .copyright {
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .overview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            
+            .banner h1 {
+                font-size: 26px;
+            }
+            
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .flow-diagram {
+                flex-direction: column;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">QP</div>
+                <div class="logo-text">QwenPaw<span>分析报告</span></div>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="#overview">流程概览</a></li>
+                <li><a href="#architecture">推送架构</a></li>
+                <li><a href="#features">核心方法</a></li>
+                <li><a href="#api">API接口</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Banner区 -->
+    <section class="banner">
+        <div class="banner-content">
+            <h1>钉钉消息推送流程 <span>技术分析报告</span></h1>
+            <p>基于 DingTalkChannel 源码深度解析消息推送机制<br>
+            三级推送策略：SessionWebhook → Open API 降级 → 完整降级链</p>
+        </div>
+    </section>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 概览统计 -->
+        <section id="overview">
+            <div class="overview-grid">
+                <div class="overview-card blue">
+                    <div class="icon">📤</div>
+                    <h3>3</h3>
+                    <p>推送通道</p>
+                </div>
+                <div class="overview-card red">
+                    <div class="icon">🔄</div>
+                    <h3>2</h3>
+                    <p>降级策略</p>
+                </div>
+                <div class="overview-card green">
+                    <div class="icon">🎯</div>
+                    <h3>5</h3>
+                    <p>消息类型</p>
+                </div>
+                <div class="overview-card cyan">
+                    <div class="icon">⚡</div>
+                    <h3>1h</h3>
+                    <p>Token缓存</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 流程概述 -->
+        <section class="content-section">
+            <h3>流程概述</h3>
+            <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 20px;">
+                钉钉消息推送采用<strong>三级推送策略</strong>，确保消息的高可靠性送达。主通道使用 <code>sessionWebhook</code> 实现快速推送，
+                当 Webhook 过期或发送失败时，自动降级到钉钉 <strong>Open API</strong> 进行推送。整个推送链路支持文本、图片、文件、音频、视频五种消息类型，
+                并通过完善的会话存储机制支持主动消息推送场景（如定时任务）。
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <span class="status-tag active">生产可用</span>
+                <span class="status-tag info">三级降级</span>
+                <span class="status-tag info">异步架构</span>
+                <span class="status-tag info">会话持久化</span>
+            </div>
+        </section>
+
+        <!-- 推送流程图 -->
+        <section id="architecture" class="content-section">
+            <h3>消息推送流程</h3>
+            
+            <h4 style="color: var(--text-primary); margin: 20px 0 15px; font-size: 16px;">1. 整体推送流程</h4>
+            <div class="flow-diagram">
+                <div class="flow-step">
+                    <h5>send() 入口</h5>
+                    <p>主动/回复推送</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="decision-box">
+                    <h5>获取 Webhook</h5>
+                    <p>meta/store</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">
+                    <h5>Webhook 推送</h5>
+                    <p>sessionWebhook</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="decision-box">
+                    <h5>成功?</h5>
+                    <p>判断结果</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">
+                    <h5>Open API</h5>
+                    <p>降级推送</p>
+                </div>
+            </div>
+
+            <h4 style="color: var(--text-primary); margin: 25px 0 15px; font-size: 16px;">2. 推送通道架构</h4>
+            <div class="architecture-box">
+                <div class="arch-layer">
+                    <div class="arch-item primary">
+                        <h5>DingTalkChannel.send()</h5>
+                        <p>统一推送入口</p>
+                    </div>
+                </div>
+                <div class="arch-layer" style="justify-content: center;">
+                    <span style="font-size: 24px; color: var(--accent-red);">↓</span>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-item secondary">
+                        <h5>_get_session_webhook_for_send()</h5>
+                        <p>解析推送目标</p>
+                    </div>
+                </div>
+                <div class="arch-layer" style="justify-content: center;">
+                    <span style="font-size: 24px; color: var(--accent-red);">↓</span>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-item success">
+                        <h5>主通道</h5>
+                        <p>_send_via_session_webhook()</p>
+                    </div>
+                    <div class="arch-item warning">
+                        <h5>降级通道</h5>
+                        <p>_send_via_open_api()</p>
+                    </div>
+                </div>
+                <div class="arch-layer" style="justify-content: center;">
+                    <span style="font-size: 24px; color: var(--accent-red);">↓</span>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-item secondary">
+                        <h5>文本消息</h5>
+                        <p>markdown/text</p>
+                    </div>
+                    <div class="arch-item secondary">
+                        <h5>媒体消息</h5>
+                        <p>image/file/audio/video</p>
+                    </div>
+                    <div class="arch-item secondary">
+                        <h5>AI Card</h5>
+                        <p>流式卡片</p>
+                    </div>
+                </div>
+            </div>
+
+            <h4 style="color: var(--text-primary); margin: 25px 0 15px; font-size: 16px;">3. 三级推送策略详解</h4>
+            <div class="code-block">
+                <pre><span class="comment"># 第一优先级：当前请求中的 sessionWebhook</span>
+session_webhook = meta.get(<span class="string">"session_webhook"</span>) or meta.get(<span class="string">"sessionWebhook"</span>)
+
+<span class="comment"># 第二优先级：to_handle 解析的 webhook URL</span>
+route = self._route_from_handle(to_handle)
+session_webhook = route.get(<span class="string">"session_webhook"</span>)
+
+<span class="comment"># 第三优先级：从存储中加载（主动推送场景）</span>
+webhook_key = route.get(<span class="string">"webhook_key"</span>)
+webhook_entry = await self._load_session_webhook_entry(webhook_key)
+session_webhook = webhook_entry.get(<span class="string">"webhook"</span>)
+
+<span class="comment"># 降级策略：Open API</span>
+<span class="keyword">if not</span> session_webhook:
+    await self._send_via_open_api(text, conversation_id, ...)</pre>
+            </div>
+        </section>
+
+        <!-- 核心方法 -->
+        <section id="features" class="content-section">
+            <h3>核心方法详解</h3>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h4><span class="num">1</span>send() - 统一推送入口</h4>
+                    <p>消息推送的主入口方法，支持主动推送和回复场景。自动解析 to_handle 获取推送目标，
+                    优先使用当前请求的 sessionWebhook，失败后自动降级到 Open API。</p>
+                </div>
+                <div class="feature-item">
+                    <h4><span class="num">2</span>_send_via_session_webhook() - Webhook推送</h4>
+                    <p>通过钉钉 sessionWebhook 发送文本消息。支持 Markdown 和纯文本两种格式，
+                    超过3500字符自动切换为文本格式。返回 bool 表示成功与否。</p>
+                </div>
+                <div class="feature-item">
+                    <h4><span class="num">3</span>_send_via_open_api() - Open API推送</h4>
+                    <p>当 Webhook 不可用时的降级方案。根据会话类型选择不同 API：
+                    单聊使用 batchSend，群聊使用 groupMessages/send。需要 Access Token 认证。</p>
+                </div>
+                <div class="feature-item">
+                    <h4><span class="num">4</span>_get_session_webhook_for_send() - 目标解析</h4>
+                    <p>解析推送目标地址，支持多种格式：dingtalk:sw:xxx（存储key）、
+                    dingtalk:webhook:url、直接URL。优先使用当前请求上下文中的 webhook。</p>
+                </div>
+                <div class="feature-item">
+                    <h4><span class="num">5</span>_save_session_webhook() - 会话存储</h4>
+                    <p>保存用户的 sessionWebhook 及相关元数据，用于后续主动推送。存储在内存和磁盘双写，
+                    支持服务重启后恢复。包含 conversation_id、conversation_type、sender_staff_id。</p>
+                </div>
+                <div class="feature-item">
+                    <h4><span class="num">6</span>_invalidate_session_webhook() - 失效清理</h4>
+                    <p>当 Webhook 推送失败时，清除内存中的 webhook URL，但保留其他元数据。
+                    这样后续推送可以继续使用 Open API 降级，避免重复失败请求。</p>
+                </div>
+                <div class="feature-item">
+                    <h4><span class="num">7</span>_get_access_token() - Token管理</h4>
+                    <p>获取钉钉 Access Token，带实例级缓存（TTL 1小时）。使用双重检查锁定模式，
+                    避免并发场景下的重复请求。Token 过期前自动刷新。</p>
+                </div>
+                <div class="feature-item">
+                    <h4><span class="num">8</span>send_content_parts() - 多内容推送</h4>
+                    <p>支持同时推送文本和媒体内容。先发送文本消息，再逐个上传并发送媒体文件。
+                    失败时自动触发降级流程，确保消息送达。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- API接口 -->
+        <section id="api" class="content-section">
+            <h3>钉钉 API 接口</h3>
+            
+            <h4 style="color: var(--text-primary); margin: 20px 0 15px; font-size: 16px;">Webhook 推送接口</h4>
+            <div class="api-endpoint">
+                <p><strong>POST</strong> <code>{sessionWebhook}</code></p>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+                    钉钉会话 Webhook 地址，从入站消息中获取。支持 text、markdown、image、file 等消息类型。
+                </p>
+            </div>
+
+            <h4 style="color: var(--text-primary); margin: 20px 0 15px; font-size: 16px;">Open API 接口</h4>
+            <table class="config-table">
+                <thead>
+                    <tr>
+                        <th>API 端点</th>
+                        <th>方法</th>
+                        <th>用途</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/v1.0/oauth2/accessToken</code></td>
+                        <td>POST</td>
+                        <td>获取 Access Token</td>
+                    </tr>
+                    <tr>
+                        <td><code>/v1.0/robot/oToMessages/batchSend</code></td>
+                        <td>POST</td>
+                        <td>单聊消息批量发送</td>
+                    </tr>
+                    <tr>
+                        <td><code>/v1.0/robot/groupMessages/send</code></td>
+                        <td>POST</td>
+                        <td>群聊消息发送</td>
+                    </tr>
+                    <tr>
+                        <td><code>/v1.0/card/instances</code></td>
+                        <td>POST</td>
+                        <td>创建/更新 AI Card</td>
+                    </tr>
+                    <tr>
+                        <td><code>/v1.0/messageFiles/upload</code></td>
+                        <td>POST</td>
+                        <td>媒体文件上传</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4 style="color: var(--text-primary); margin: 25px 0 15px; font-size: 16px;">消息类型 Payload</h4>
+            <div class="code-block">
+                <pre><span class="comment"># Markdown 消息 (&lt; 3500字符)</span>
+{
+    <span class="string">"msgtype"</span>: <span class="string">"markdown"</span>,
+    <span class="string">"markdown"</span>: {
+        <span class="string">"title"</span>: <span class="string">"💬标题..."</span>,
+        <span class="string">"text"</span>: <span class="string">"内容..."</span>
+    }
+}
+
+<span class="comment"># 纯文本消息 (&gt;= 3500字符)</span>
+{
+    <span class="string">"msgtype"</span>: <span class="string">"text"</span>,
+    <span class="string">"text"</span>: { <span class="string">"content"</span>: <span class="string">"长文本内容..."</span> }
+}
+
+<span class="comment"># Open API 消息</span>
+{
+    <span class="string">"robotCode"</span>: <span class="string">"xxx"</span>,
+    <span class="string">"openConversationId"</span>: <span class="string">"xxx"</span>,
+    <span class="string">"msgKey"</span>: <span class="string">"sampleText"</span>,
+    <span class="string">"msgParam"</span>: <span class="string">"{\"content\":\"文本\"}"</span>
+}</pre>
+            </div>
+        </section>
+
+        <!-- 会话管理 -->
+        <section class="content-section">
+            <h3>会话 Webhook 管理</h3>
+            
+            <h4 style="color: var(--text-primary); margin: 20px 0 15px; font-size: 16px;">存储结构</h4>
+            <div class="code-block">
+                <pre><span class="comment"># Session Webhook 存储结构</span>
+_session_webhook_store = {
+    <span class="string">"dingtalk:sw:{session_id}"</span>: {
+        <span class="string">"webhook"</span>: <span class="string">"https://oapi.dingtalk.com/robot/sendBySession?..."</span>,
+        <span class="string">"conversation_id"</span>: <span class="string">"cidxxx"</span>,
+        <span class="string">"conversation_type"</span>: <span class="string">"group"</span>,  <span class="comment"># 或 "dm"</span>
+        <span class="string">"sender_staff_id"</span>: <span class="string">"user123"</span>
+    }
+}</pre>
+            </div>
+
+            <h4 style="color: var(--text-primary); margin: 25px 0 15px; font-size: 16px;">to_handle 格式解析</h4>
+            <table class="config-table">
+                <thead>
+                    <tr>
+                        <th>格式</th>
+                        <th>说明</th>
+                        <th>使用场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>dingtalk:sw:{session_id}</code></td>
+                        <td>从存储中查找 webhook</td>
+                        <td>定时任务主动推送</td>
+                    </tr>
+                    <tr>
+                        <td><code>dingtalk:webhook:{url}</code></td>
+                        <td>直接使用 URL</td>
+                        <td>指定 webhook 地址</td>
+                    </tr>
+                    <tr>
+                        <td><code>https://...</code></td>
+                        <td>直接 webhook URL</td>
+                        <td>直接推送</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4 style="color: var(--text-primary); margin: 25px 0 15px; font-size: 16px;">过期处理机制</h4>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                sessionWebhook 有过期时间（sessionWebhookExpiredTime），系统在以下情况下会处理过期：
+            </p>
+            <ul style="color: var(--text-secondary); padding-left: 20px; line-height: 1.8;">
+                <li><strong>推送失败时</strong>：自动清除 webhook，保留元数据供 Open API 降级使用</li>
+                <li><strong>当前请求无 webhook</strong>：不使用存储中的旧 webhook，避免过期问题</li>
+                <li><strong>主动推送场景</strong>：从存储加载，失败后降级到 Open API</li>
+            </ul>
+        </section>
+
+        <!-- 关键技术点 -->
+        <section class="content-section">
+            <h3>关键技术点</h3>
+            
+            <h4 style="color: var(--text-primary); margin: 20px 0 15px; font-size: 16px;">1. 异步并发安全</h4>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                使用 <code>asyncio.Lock()</code> 保护共享资源（session_webhook_store、token缓存），
+                确保并发场景下的数据一致性。Token 使用双重检查锁定模式优化性能。
+            </p>
+
+            <h4 style="color: var(--text-primary); margin: 25px 0 15px; font-size: 16px;">2. Markdown 规范化</h4>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                钉钉 Markdown 解析器有特殊限制，需进行规范化处理：
+            </p>
+            <ul style="color: var(--text-secondary); padding-left: 20px; line-height: 1.8;">
+                <li>列表项前添加空行，避免与前文合并</li>
+                <li>代码块去除多余缩进</li>
+                <li>特殊字符转义处理</li>
+            </ul>
+
+            <h4 style="color: var(--text-primary); margin: 25px 0 15px; font-size: 16px;">3. 媒体文件推送流程</h4>
+            <div class="flow-diagram">
+                <div class="flow-step">
+                    <h5>获取文件URL</h5>
+                    <p>part属性解析</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">
+                    <h5>上传到钉钉</h5>
+                    <p>messageFiles/upload</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">
+                    <h5>获取 mediaId</h5>
+                    <p>钉钉媒体ID</p>
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">
+                    <h5>发送媒体消息</h5>
+                    <p>image/file/video</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 总结 -->
+        <section class="content-section">
+            <h3>总结与建议</h3>
+            <div style="display: grid; gap: 15px;">
+                <div style="padding: 20px; background: #d4edda; border-radius: 10px; border-left: 4px solid var(--success-green);">
+                    <h4 style="color: #155724; margin-bottom: 10px;">✅ 设计优势</h4>
+                    <ul style="color: #155724; padding-left: 20px; line-height: 1.8;">
+                        <li>三级推送策略保证消息送达率，Webhook 失败自动降级</li>
+                        <li>会话 Webhook 持久化存储，支持主动推送和定时任务场景</li>
+                        <li>异步架构设计，支持高并发消息推送</li>
+                        <li>完善的错误处理和日志记录，便于问题排查</li>
+                        <li>Token 缓存机制，减少 API 调用开销</li>
+                    </ul>
+                </div>
+                <div style="padding: 20px; background: #fff3cd; border-radius: 10px; border-left: 4px solid var(--warning-orange);">
+                    <h4 style="color: #856404; margin-bottom: 10px;">⚠️ 注意事项</h4>
+                    <ul style="color: #856404; padding-left: 20px; line-height: 1.8;">
+                        <li>sessionWebhook 有过期时间，长时间未活跃用户无法推送</li>
+                        <li>Open API 推送需要配置 robot_code 和相应权限</li>
+                        <li>单聊推送必须有 sender_staff_id，否则无法发送</li>
+                        <li>媒体文件上传依赖网络稳定性，需处理上传失败场景</li>
+                        <li>消息长度超过 3500 字符会切换为纯文本格式</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>QwenPaw 钉钉消息推送流程技术分析报告</p>
+            <p style="color: rgba(255,255,255,0.6);">基于 DingTalkChannel 源码深度解析 · 为开发者和运维人员提供参考</p>
+            <p class="copyright">© 2026 QwenPaw Project | Generated by AI Code Analysis</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QwenPaw 个人AI助理系统 - 技术方案报告</title>
+    <link rel="stylesheet" href="css/qwenpaw-report.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 封面 -->
+        <section class="page cover-page" id="cover">
+            <div class="cover-header">
+                <h1>QwenPaw 个人AI助理系统</h1>
+                <h2>技术方案报告</h2>
+            </div>
+            
+            <div class="cover-meta">
+                <table class="meta-table">
+                    <tr><td>项目名称</td><td>QwenPaw个人AI助理系统</td></tr>
+                    <tr><td>文档编号</td><td>QP-TECH-2026-001</td></tr>
+                    <tr><td>版　　本</td><td>V1.0</td></tr>
+                    <tr><td>密　　级</td><td>内部公开</td></tr>
+                    <tr><td>编制单位</td><td>技术研发部</td></tr>
+                    <tr><td>编制日期</td><td>2026年4月</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- 版本记录 -->
+        <section class="page" id="version">
+            <h2>版本记录</h2>
+            <table class="data-table">
+                <thead>
+                    <tr><th>版本号</th><th>修订日期</th><th>修订人</th><th>修订内容说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>V1.0</td><td>2026年4月</td><td>技术研发部</td><td>初版发布，完成整体技术方案设计</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 审批记录 -->
+        <section class="page" id="approval">
+            <h2>审批记录</h2>
+            <table class="data-table">
+                <thead>
+                    <tr><th>角色</th><th>姓名</th><th>签字</th><th>日期</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>编写</td><td>________</td><td></td><td>________</td></tr>
+                    <tr><td>审核</td><td>________</td><td></td><td>________</td></tr>
+                    <tr><td>批准</td><td>________</td><td></td><td>________</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 目录 -->
+        <section class="page" id="toc">
+            <h2>目录</h2>
+            <nav class="toc-nav">
+                <ol>
+                    <li><a href="#section1">项目背景与需求分析</a></li>
+                    <li><a href="#section2">项目建设目标</a></li>
+                    <li><a href="#section3">技术架构方案</a></li>
+                    <li><a href="#section4">核心功能设计</a></li>
+                    <li><a href="#section5">安全保障体系</a></li>
+                    <li><a href="#section6">部署实施方案</a></li>
+                    <li><a href="#section7">风险评估与应对</a></li>
+                    <li><a href="#section8">项目实施计划</a></li>
+                    <li><a href="#section9">总结与展望</a></li>
+                </ol>
+            </nav>
+        </section>
+
+        <!-- 第1章 -->
+        <section class="page" id="section1">
+            <h2>1. 项目背景与需求分析</h2>
+            
+            <div class="section-content">
+                <h3>1.1 行业背景</h3>
+                <p>随着人工智能技术的快速发展，大语言模型（LLM）已在多个领域展现出强大的能力。然而，现有AI助手产品普遍存在以下问题：</p>
+                <ul class="problem-list">
+                    <li><strong>数据隐私风险</strong>：云端AI服务需要将用户数据上传至第三方服务器，存在数据泄露风险</li>
+                    <li><strong>定制化程度低</strong>：通用AI助手难以满足个人或企业的特定业务需求</li>
+                    <li><strong>渠道整合困难</strong>：各通讯平台（企业微信、钉钉、飞书等）的AI接入方案碎片化</li>
+                    <li><strong>本地模型支持不足</strong>：对本地部署的大模型支持有限，难以实现完全离线运行</li>
+                </ul>
+
+                <h3>1.2 需求分析</h3>
+                <p>基于上述背景，本项目旨在构建一套<strong>个人AI助理系统</strong>，满足以下核心需求：</p>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>需求类别</th><th>具体需求</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>数据安全</td><td>系统完全运行于用户自有环境，数据不出设备</td></tr>
+                        <tr><td>多渠道接入</td><td>支持企业微信、钉钉、飞书、Telegram、Discord等多平台</td></tr>
+                        <tr><td>多Agent协作</td><td>支持创建多个独立Agent，可协同完成复杂任务</td></tr>
+                        <tr><td>本地模型优先</td><td>原生支持llama.cpp、Ollama等本地推理后端</td></tr>
+                        <tr><td>技能可扩展</td><td>支持自定义技能加载，满足个性化需求</td></tr>
+                        <tr><td>安全可控</td><td>多层安全防护，包括工具守卫、技能扫描等</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 第2章 -->
+        <section class="page" id="section2">
+            <h2>2. 项目建设目标</h2>
+            
+            <div class="section-content">
+                <h3>2.1 总体目标</h3>
+                <p>构建一套<strong>安全、私有、可扩展</strong>的个人AI助理系统，实现用户数据完全自主可控，支持多渠道、多场景的智能交互。</p>
+
+                <h3>2.2 具体目标</h3>
+                <div class="goal-box">
+                    <div class="goal-item"><span class="check">✓</span> 数据本地化：所有数据存储与处理均在用户自有环境完成</div>
+                    <div class="goal-item"><span class="check">✓</span> 全渠道覆盖：支持10+主流通讯平台的统一接入</div>
+                    <div class="goal-item"><span class="check">✓</span> 多Agent架构：支持多Agent独立运行与协同调度</div>
+                    <div class="goal-item"><span class="check">✓</span> 本地模型优先：优先支持本地推理，降低对云服务的依赖</div>
+                    <div class="goal-item"><span class="check">✓</span> 技能生态开放：提供技能开发框架，支持社区贡献</div>
+                    <div class="goal-item"><span class="check">✓</span> 企业级安全：多层安全防护，满足企业合规要求</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第3章 -->
+        <section class="page" id="section3">
+            <h2>3. 技术架构方案</h2>
+            
+            <div class="section-content">
+                <h3>3.1 技术选型</h3>
+                <h4>3.1.1 开发语言与运行环境</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>技术项</th><th>选型方案</th><th>选型理由</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>开发语言</td><td>Python 3.10 ~ 3.14</td><td>生态丰富，AI库支持完善</td></tr>
+                        <tr><td>Web框架</td><td>FastAPI + Uvicorn</td><td>高性能异步框架，API开发效率高</td></tr>
+                        <tr><td>前端框架</td><td>React + TypeScript + Vite</td><td>现代化前端栈，开发体验优秀</td></tr>
+                    </tbody>
+                </table>
+
+                <h4>3.1.2 核心依赖</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>依赖组件</th><th>版本要求</th><th>功能说明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>agentscope</td><td>1.0.18</td><td>底层多智能体运行时框架</td></tr>
+                        <tr><td>agentscope-runtime</td><td>1.1.3</td><td>Agent运行时扩展</td></tr>
+                        <tr><td>uvicorn</td><td>≥0.40.0</td><td>ASGI服务器</td></tr>
+                        <tr><td>apscheduler</td><td>≥3.11.2</td><td>定时任务调度</td></tr>
+                        <tr><td>playwright</td><td>≥1.49.0</td><td>浏览器自动化</td></tr>
+                        <tr><td>llama-cpp-python</td><td>-</td><td>本地模型推理</td></tr>
+                        <tr><td>ollama</td><td>-</td><td>Ollama模型接口</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>3.2 系统架构</h3>
+                <div class="architecture-diagram">
+                    <div class="arch-layer">
+                        <div class="arch-title">用户终端</div>
+                        <div class="arch-connector">↓</div>
+                    </div>
+                    <div class="arch-layer channels">
+                        <div class="arch-box">企业微信/钉钉</div>
+                        <div class="arch-box">Telegram/Discord</div>
+                        <div class="arch-box">Web控制台</div>
+                    </div>
+                    <div class="arch-connector">↓</div>
+                    <div class="arch-layer core">
+                        <div class="arch-box highlight">渠道适配层</div>
+                        <div class="arch-box highlight">多Agent管理层</div>
+                    </div>
+                    <div class="arch-connector">↓</div>
+                    <div class="arch-layer capabilities">
+                        <div class="arch-box">技能系统</div>
+                        <div class="arch-box">工具系统</div>
+                        <div class="arch-box">记忆系统</div>
+                    </div>
+                    <div class="arch-connector">↓</div>
+                    <div class="arch-layer models">
+                        <div class="arch-box">本地模型</div>
+                        <div class="arch-box">云端API</div>
+                        <div class="arch-box">Ollama</div>
+                    </div>
+                </div>
+
+                <h3>3.3 数据流设计</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">用户消息</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">渠道适配器</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">统一队列</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">Agent处理</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">技能/工具调用</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">模型推理</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">响应返回</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第4章 -->
+        <section class="page" id="section4">
+            <h2>4. 核心功能设计</h2>
+            
+            <div class="section-content">
+                <h3>4.1 多Agent管理</h3>
+                <div class="agent-diagram">
+                    <div class="agent-box">Agent 1<br/><small>工作助理</small></div>
+                    <div class="agent-box">Agent 2<br/><small>生活助手</small></div>
+                    <div class="agent-box">Agent N<br/><small>专业领域</small></div>
+                </div>
+                <div class="agent-coordinator">Agent协调器<br/><small>任务分发/协同</small></div>
+
+                <p><strong>核心能力</strong>：</p>
+                <ul>
+                    <li>Agent创建与配置</li>
+                    <li>独立工作区管理</li>
+                    <li>多Agent协同调度</li>
+                    <li>上下文隔离与共享</li>
+                </ul>
+
+                <h3>4.2 全渠道接入</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>渠道类型</th><th>支持平台</th><th>接入方式</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>企业通讯</td><td>企业微信、钉钉、飞书</td><td>官方SDK集成</td></tr>
+                        <tr><td>社交通讯</td><td>Telegram、Discord、iMessage、Matrix</td><td>开源SDK集成</td></tr>
+                        <tr><td>语音交互</td><td>本地语音识别/合成</td><td>本地服务</td></tr>
+                        <tr><td>Web控制台</td><td>浏览器访问</td><td>React SPA</td></tr>
+                        <tr><td>桌面客户端</td><td>Windows、macOS</td><td>Electron打包</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>4.3 智能技能体系</h3>
+                <h4>4.3.1 内置技能库</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>技能名称</th><th>功能描述</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>PDF/Office处理</td><td>文档解析、内容提取、格式转换</td></tr>
+                        <tr><td>网页浏览与快照</td><td>网页内容抓取、截图、信息提取</td></tr>
+                        <tr><td>新闻聚合与摘要</td><td>多源新闻聚合、智能摘要生成</td></tr>
+                        <tr><td>文件读取与搜索</td><td>本地文件检索、内容搜索</td></tr>
+                        <tr><td>定时任务管理</td><td>周期性任务调度与执行</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>4.4 本地模型支持</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>本地推理后端</th><th>支持模型格式</th><th>特点</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>llama.cpp</td><td>GGUF格式</td><td>高性能CPU推理，支持量化</td></tr>
+                        <tr><td>Ollama</td><td>GGUF格式</td><td>易用的模型管理工具</td></tr>
+                        <tr><td>LM Studio</td><td>GGUF格式</td><td>图形化界面，便于管理</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 第5章 -->
+        <section class="page" id="section5">
+            <h2>5. 安全保障体系</h2>
+            
+            <div class="section-content">
+                <h3>5.1 安全架构</h3>
+                <div class="security-layers">
+                    <div class="security-layer">
+                        <h4>技能安全扫描器</h4>
+                        <ul>
+                            <li>中文Prompt注入检测</li>
+                            <li>白名单机制</li>
+                            <li>阻断/警告模式</li>
+                            <li>历史记录审计</li>
+                        </ul>
+                    </div>
+                    <div class="security-layer">
+                        <h4>工具守卫引擎</h4>
+                        <ul>
+                            <li>命令白名单控制</li>
+                            <li>规则校验</li>
+                            <li>审批流程</li>
+                            <li>多守护者并行</li>
+                        </ul>
+                    </div>
+                    <div class="security-layer">
+                        <h4>文件访问控制</h4>
+                        <ul>
+                            <li>路径权限验证</li>
+                            <li>操作审批</li>
+                            <li>敏感目录保护</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>5.2 安全机制说明</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>安全层级</th><th>机制</th><th>说明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>技能层</td><td>安全扫描器</td><td>对技能代码进行静态分析，检测潜在风险</td></tr>
+                        <tr><td>工具层</td><td>工具守卫</td><td>对工具调用进行规则校验，支持审批流程</td></tr>
+                        <tr><td>文件层</td><td>访问控制</td><td>敏感文件操作需用户确认</td></tr>
+                        <tr><td>数据层</td><td>本地存储</td><td>所有数据存储在本地，不上传云端</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 第6章 -->
+        <section class="page" id="section6">
+            <h2>6. 部署实施方案</h2>
+            
+            <div class="section-content">
+                <h3>6.1 部署方式</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>部署方式</th><th>适用场景</th><th>复杂度</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>pip安装</td><td>开发者、快速体验</td><td>低</td></tr>
+                        <tr><td>脚本安装</td><td>个人服务器部署</td><td>中</td></tr>
+                        <tr><td>Docker部署</td><td>生产环境、企业部署</td><td>中</td></tr>
+                        <tr><td>桌面应用</td><td>普通用户、离线使用</td><td>低</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>6.2 系统要求</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>资源项</th><th>最低配置</th><th>推荐配置</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>操作系统</td><td>Windows 10 / macOS 11 / Ubuntu 20.04</td><td>Windows 11 / macOS 14 / Ubuntu 22.04</td></tr>
+                        <tr><td>Python</td><td>3.10+</td><td>3.11+</td></tr>
+                        <tr><td>CPU</td><td>4核心</td><td>8核心+</td></tr>
+                        <tr><td>内存</td><td>8GB</td><td>16GB+（本地模型需更多）</td></tr>
+                        <tr><td>存储</td><td>10GB可用空间</td><td>50GB+（含模型文件）</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>6.3 网络架构</h3>
+                <div class="network-diagram">
+                    <div class="net-box">防火墙</div>
+                    <div class="net-arrow">↓</div>
+                    <div class="net-box highlight">反向代理 (Nginx)<br/>HTTPS终结</div>
+                    <div class="net-arrow">↓</div>
+                    <div class="net-services">
+                        <div class="net-service">Web控制台<br/>:80/443</div>
+                        <div class="net-service">API服务<br/>:8000</div>
+                        <div class="net-service">WebSocket服务<br/>:8001</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第7章 -->
+        <section class="page" id="section7">
+            <h2>7. 风险评估与应对</h2>
+            
+            <div class="section-content">
+                <h3>7.1 技术风险</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>风险项</th><th>风险等级</th><th>应对措施</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>模型兼容性问题</td><td>中</td><td>采用标准化接口，支持多后端切换</td></tr>
+                        <tr><td>性能瓶颈</td><td>中</td><td>异步架构设计，支持水平扩展</td></tr>
+                        <tr><td>第三方SDK变更</td><td>高</td><td>抽象渠道适配层，隔离变化影响</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>7.2 安全风险</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>风险项</th><th>风险等级</th><th>应对措施</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>恶意技能注入</td><td>高</td><td>技能安全扫描，签名验证</td></tr>
+                        <tr><td>敏感数据泄露</td><td>高</td><td>本地优先策略，数据不出设备</td></tr>
+                        <tr><td>未授权访问</td><td>中</td><td>认证授权机制，访问日志审计</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>7.3 运维风险</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>风险项</th><th>风险等级</th><th>应对措施</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>服务中断</td><td>中</td><td>进程守护(supervisord)，自动重启</td></tr>
+                        <tr><td>日志膨胀</td><td>低</td><td>日志轮转，级别控制</td></tr>
+                        <tr><td>配置丢失</td><td>低</td><td>配置持久化，备份机制</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 第8章 -->
+        <section class="page" id="section8">
+            <h2>8. 项目实施计划</h2>
+            
+            <div class="section-content">
+                <h3>8.1 实施阶段</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-phase">第一阶段</div>
+                        <div class="timeline-content">
+                            <h4>核心功能验证</h4>
+                            <p><strong>时间：</strong>第1-2周</p>
+                            <p><strong>目标：</strong>完成核心Agent框架与渠道接入</p>
+                            <p><strong>交付：</strong>可运行的基础系统</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-phase">第二阶段</div>
+                        <div class="timeline-content">
+                            <h4>功能完善</h4>
+                            <p><strong>时间：</strong>第3-4周</p>
+                            <p><strong>目标：</strong>完善技能系统、工具系统、记忆系统</p>
+                            <p><strong>交付：</strong>功能完整的测试版本</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-phase">第三阶段</div>
+                        <div class="timeline-content">
+                            <h4>安全加固</h4>
+                            <p><strong>时间：</strong>第5-6周</p>
+                            <p><strong>目标：</strong>完成安全扫描器、工具守卫等安全组件</p>
+                            <p><strong>交付：</strong>安全审计通过的版本</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-phase">第四阶段</div>
+                        <div class="timeline-content">
+                            <h4>部署与优化</h4>
+                            <p><strong>时间：</strong>第7-8周</p>
+                            <p><strong>目标：</strong>多平台部署测试、性能优化</p>
+                            <p><strong>交付：</strong>生产就绪版本</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>8.2 资源投入</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>角色</th><th>人数</th><th>职责</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>架构师</td><td>1</td><td>技术架构设计、核心模块开发</td></tr>
+                        <tr><td>后端开发</td><td>2</td><td>API开发、渠道适配、技能开发</td></tr>
+                        <tr><td>前端开发</td><td>1</td><td>Web控制台开发</td></tr>
+                        <tr><td>测试工程师</td><td>1</td><td>功能测试、安全测试</td></tr>
+                        <tr><td>运维工程师</td><td>1</td><td>部署方案、监控告警</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 第9章 -->
+        <section class="page" id="section9">
+            <h2>9. 总结与展望</h2>
+            
+            <div class="section-content">
+                <h3>9.1 方案总结</h3>
+                <p>本技术方案针对个人AI助理系统的需求，提出了一套<strong>安全、私有、可扩展</strong>的解决方案：</p>
+                <ol>
+                    <li><strong>数据自主可控</strong>：采用本地优先策略，所有数据存储与处理均在用户自有环境完成</li>
+                    <li><strong>全渠道覆盖</strong>：支持企业通讯、社交通讯、语音交互等多种渠道统一接入</li>
+                    <li><strong>灵活扩展</strong>：技能系统支持自定义开发，满足个性化需求</li>
+                    <li><strong>企业级安全</strong>：多层安全防护，满足合规要求</li>
+                </ol>
+
+                <h3>9.2 后续展望</h3>
+                <ul>
+                    <li><strong>模型生态扩展</strong>：持续跟进开源模型发展，支持更多本地模型格式</li>
+                    <li><strong>技能市场</strong>：构建技能分享平台，促进社区生态发展</li>
+                    <li><strong>企业版本</strong>：基于基础版本，开发适合企业场景的增强版本</li>
+                    <li><strong>多模态支持</strong>：扩展图像、语音等多模态交互能力</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="page-footer">
+            <p>文档结束 | QwenPaw 个人AI助理系统 - 技术方案报告 V1.0</p>
+        </footer>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="nav-bar">
+        <button onclick="prevPage()" class="nav-btn">← 上一页</button>
+        <span class="page-indicator" id="pageIndicator">1 / 12</span>
+        <button onclick="nextPage()" class="nav-btn">下一页 →</button>
+    </nav>
+
+    <script src="js/qwenpaw-report.js"></script>
+</body>
+</html>

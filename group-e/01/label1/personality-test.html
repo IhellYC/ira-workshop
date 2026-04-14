@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西游记人格测试 - 你是哪个角色？</title>
+    <link rel="stylesheet" href="css/personality-test.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 开始页面 -->
+        <div id="start-page" class="page active">
+            <div class="header-decoration">
+                <span class="emoji-float">🐵</span>
+                <span class="emoji-float">🐷</span>
+                <span class="emoji-float">🐲</span>
+                <span class="emoji-float">🧙</span>
+            </div>
+            <h1>西游人格谱</h1>
+            <p class="subtitle">取经路上，你是哪位神仙妖怪？</p>
+            <div class="intro-card">
+                <p>五位高僧为你精心设计了五道心性测试题</p>
+                <p>答案将揭示你在西游世界中的真身</p>
+                <p class="hint">全流程约需 1 分钟</p>
+            </div>
+            <button onclick="startTest()" class="btn-start">
+                <span>开始测试</span>
+                <span class="arrow">→</span>
+            </button>
+        </div>
+
+        <!-- 问题页面 -->
+        <div id="question-page" class="page">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="question-counter" id="question-counter">第 1 题 / 共 5 题</div>
+            
+            <div class="question-card">
+                <h2 id="question-text"></h2>
+                <div class="options" id="options-container"></div>
+            </div>
+        </div>
+
+        <!-- 结果页面 -->
+        <div id="result-page" class="page">
+            <div class="result-card">
+                <div class="character-avatar" id="character-avatar"></div>
+                <h1 id="character-name"></h1>
+                <div class="character-title" id="character-title"></div>
+                <div class="character-traits" id="character-traits"></div>
+                <p class="character-desc" id="character-desc"></p>
+                <div class="character-fortune" id="character-fortune"></div>
+            </div>
+            <div class="action-buttons">
+                <button onclick="restartTest()" class="btn-restart">再来一次</button>
+                <button onclick="shareResult()" class="btn-share">分享结果</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/personality-test.js"></script>
+</body>
+</html>

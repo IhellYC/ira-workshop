@@ -1,0 +1,653 @@
+/* QwenPaw 技术方案报告 - 扫描网页样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-blue: #1a5fb4;
+    --light-blue: #3584e4;
+    --bg-blue: #e5f1ff;
+    --border-blue: #99c1f1;
+    --text-dark: #1a365d;
+    --text-medium: #2d4a6f;
+    --text-light: #4a6fa5;
+    --white: #ffffff;
+    --shadow: rgba(26, 95, 180, 0.1);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(135deg, var(--bg-blue) 0%, #f0f7ff 100%);
+    min-height: 100vh;
+    padding: 20px;
+    padding-bottom: 80px;
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* 页面样式 */
+.page {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px var(--shadow);
+    border: 1px solid var(--border-blue);
+    page-break-after: always;
+}
+
+/* 封面样式 */
+.cover-page {
+    text-align: center;
+    padding: 60px 40px;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--light-blue) 100%);
+    color: var(--white);
+}
+
+.cover-header h1 {
+    font-size: 2.8em;
+    margin-bottom: 15px;
+    font-weight: 700;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.cover-header h2 {
+    font-size: 1.8em;
+    font-weight: 400;
+    opacity: 0.95;
+    margin-bottom: 50px;
+}
+
+.cover-meta {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 500px;
+    margin: 0 auto;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.meta-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.meta-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    text-align: left;
+}
+
+.meta-table td:first-child {
+    width: 35%;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.meta-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* 标题样式 */
+h2 {
+    color: var(--primary-blue);
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid var(--light-blue);
+    font-weight: 700;
+}
+
+h3 {
+    color: var(--primary-blue);
+    font-size: 1.4em;
+    margin: 30px 0 15px;
+    font-weight: 600;
+}
+
+h4 {
+    color: var(--text-medium);
+    font-size: 1.1em;
+    margin: 20px 0 10px;
+    font-weight: 600;
+}
+
+/* 段落和列表 */
+p {
+    margin-bottom: 15px;
+    text-align: justify;
+}
+
+ul, ol {
+    margin: 15px 0;
+    padding-left: 25px;
+}
+
+li {
+    margin-bottom: 8px;
+}
+
+.problem-list li {
+    margin-bottom: 12px;
+    padding-left: 10px;
+}
+
+.problem-list strong {
+    color: var(--primary-blue);
+}
+
+/* 表格样式 */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: var(--white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.data-table thead {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+.data-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-blue);
+}
+
+.data-table tbody tr:hover {
+    background: var(--bg-blue);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 目录样式 */
+.toc-nav {
+    background: linear-gradient(to right, var(--bg-blue), var(--border-blue), var(--bg-blue));
+    padding: 25px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-blue);
+}
+
+.toc-nav ol {
+    list-style: none;
+    padding: 0;
+    counter-reset: toc-counter;
+}
+
+.toc-nav li {
+    margin: 12px 0;
+    counter-increment: toc-counter;
+}
+
+.toc-nav li::before {
+    content: counter(toc-counter) ". ";
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+.toc-nav a {
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.toc-nav a:hover {
+    color: var(--light-blue);
+}
+
+/* 目标盒子 */
+.goal-box {
+    background: var(--bg-blue);
+    border-radius: 12px;
+    padding: 25px;
+    margin: 20px 0;
+    border: 1px solid var(--border-blue);
+}
+
+.goal-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--border-blue);
+}
+
+.goal-item:last-child {
+    border-bottom: none;
+}
+
+.goal-item .check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--primary-blue);
+    color: var(--white);
+    border-radius: 50%;
+    margin-right: 12px;
+    font-size: 0.9em;
+}
+
+/* 架构图样式 */
+.architecture-diagram {
+    text-align: center;
+    padding: 30px;
+    background: var(--bg-blue);
+    border-radius: 12px;
+    margin: 25px 0;
+}
+
+.arch-layer {
+    margin: 15px 0;
+}
+
+.arch-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--primary-blue);
+    padding: 15px;
+    background: var(--white);
+    border-radius: 8px;
+    display: inline-block;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.arch-connector {
+    font-size: 1.5em;
+    color: var(--light-blue);
+    margin: 10px 0;
+}
+
+.channels, .capabilities, .models {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.core {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.arch-box {
+    background: var(--white);
+    padding: 15px 25px;
+    border-radius: 8px;
+    border: 2px solid var(--border-blue);
+    font-weight: 500;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.arch-box.highlight {
+    background: var(--primary-blue);
+    color: var(--white);
+    border-color: var(--primary-blue);
+}
+
+/* 流程图样式 */
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 25px;
+    background: var(--bg-blue);
+    border-radius: 12px;
+    margin: 25px 0;
+}
+
+.flow-step {
+    background: var(--white);
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 2px solid var(--primary-blue);
+    font-weight: 500;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.flow-arrow {
+    color: var(--light-blue);
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* Agent 图 */
+.agent-diagram {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.agent-box {
+    background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+    color: var(--white);
+    padding: 20px 30px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(26, 95, 180, 0.3);
+}
+
+.agent-box small {
+    display: block;
+    margin-top: 8px;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.agent-coordinator {
+    background: var(--primary-blue);
+    color: var(--white);
+    padding: 20px 40px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    margin: 20px auto;
+    max-width: 300px;
+    box-shadow: 0 4px 15px rgba(26, 95, 180, 0.3);
+}
+
+.agent-coordinator small {
+    display: block;
+    margin-top: 8px;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* 安全层级 */
+.security-layers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 25px 0;
+}
+
+.security-layer {
+    background: var(--bg-blue);
+    border-radius: 12px;
+    padding: 25px;
+    border: 2px solid var(--border-blue);
+}
+
+.security-layer h4 {
+    color: var(--primary-blue);
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.security-layer ul {
+    padding-left: 20px;
+}
+
+.security-layer li {
+    margin-bottom: 8px;
+    color: var(--text-medium);
+}
+
+/* 网络架构 */
+.network-diagram {
+    text-align: center;
+    padding: 30px;
+    background: var(--bg-blue);
+    border-radius: 12px;
+    margin: 25px 0;
+}
+
+.net-box {
+    background: var(--white);
+    padding: 15px 30px;
+    border-radius: 8px;
+    border: 2px solid var(--border-blue);
+    display: inline-block;
+    margin: 10px;
+    font-weight: 500;
+}
+
+.net-box.highlight {
+    background: var(--primary-blue);
+    color: var(--white);
+    border-color: var(--primary-blue);
+}
+
+.net-arrow {
+    font-size: 1.5em;
+    color: var(--light-blue);
+    margin: 10px 0;
+}
+
+.net-services {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.net-service {
+    background: var(--white);
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 2px solid var(--border-blue);
+    font-size: 0.9em;
+}
+
+/* 时间线 */
+.timeline {
+    margin: 25px 0;
+}
+
+.timeline-item {
+    display: flex;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 80px;
+    top: 0;
+    bottom: -25px;
+    width: 3px;
+    background: var(--border-blue);
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-phase {
+    width: 80px;
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--primary-blue);
+    padding-top: 5px;
+}
+
+.timeline-content {
+    flex: 1;
+    background: var(--bg-blue);
+    border-radius: 12px;
+    padding: 20px;
+    margin-left: 20px;
+    border: 1px solid var(--border-blue);
+}
+
+.timeline-content h4 {
+    color: var(--primary-blue);
+    margin-bottom: 10px;
+}
+
+.timeline-content p {
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+/* 页脚 */
+.page-footer {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-light);
+    font-size: 0.9em;
+    border-top: 2px solid var(--border-blue);
+    margin-top: 40px;
+}
+
+/* 导航栏 */
+.nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 -4px 20px var(--shadow);
+    border-top: 1px solid var(--border-blue);
+    z-index: 100;
+}
+
+.nav-btn {
+    background: var(--primary-blue);
+    color: var(--white);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.nav-btn:hover {
+    background: var(--light-blue);
+    transform: translateY(-2px);
+}
+
+.page-indicator {
+    font-weight: 600;
+    color: var(--text-medium);
+    min-width: 80px;
+    text-align: center;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+        padding-bottom: 80px;
+    }
+    
+    .page {
+        padding: 25px;
+    }
+    
+    .cover-page {
+        padding: 40px 25px;
+    }
+    
+    .cover-header h1 {
+        font-size: 2em;
+    }
+    
+    .cover-header h2 {
+        font-size: 1.3em;
+    }
+    
+    h2 {
+        font-size: 1.5em;
+    }
+    
+    .channels, .capabilities, .models, .core {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .flow-diagram {
+        flex-direction: column;
+    }
+    
+    .flow-arrow {
+        transform: rotate(90deg);
+    }
+    
+    .agent-diagram {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .timeline-item {
+        flex-direction: column;
+    }
+    
+    .timeline-item::before {
+        display: none;
+    }
+    
+    .timeline-phase {
+        width: auto;
+        margin-bottom: 10px;
+    }
+    
+    .timeline-content {
+        margin-left: 0;
+    }
+    
+    .security-layers {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 打印样式 */
+@media print {
+    body {
+        background: white;
+        padding: 0;
+    }
+    
+    .page {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        page-break-after: always;
+    }
+    
+    .nav-bar {
+        display: none;
+    }
+    
+    .page-footer {
+        display: none;
+    }
+}
