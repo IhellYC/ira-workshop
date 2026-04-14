@@ -1,10 +1,48 @@
-# 忽略本地目录
-.qoder/
+# Environment files
+.env
+.env.local
+.env.*.local
 
-# macOS
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.venv/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-**/.DS_Store
+Thumbs.db
 
-# 其他文件
-CODING_STYLE.md
-QwenPaw技术方案报告.md
+# Logs
+*.log
+logs/
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build
+dist/
+build/

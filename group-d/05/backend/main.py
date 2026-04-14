@@ -1,9 +1,6 @@
-# Group D - Member 05 - Backend Code
-# This is the main backend file for group-d member 05
-
-def hello_world():
-      return "Hello from Group D, Member 05!"
+# AI基金数据周报系统 - 后端入口
+# 运行方式: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 if __name__ == "__main__":
-      print(hello_world())
-  
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
