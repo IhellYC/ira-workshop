@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玄机命理 - 项目技术报告</title>
+    <meta name="description" content="玄机命理 项目技术方案报告">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-blue: #1a5fb4;
+            --light-blue: #3584e4;
+            --bg-blue: #e5f1ff;
+            --border-blue: #99c1f1;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a5a;
+            --text-muted: #6b6b7b;
+            --white: #ffffff;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 20px rgba(26, 95, 180, 0.15);
+            --shadow-hover: 0 8px 30px rgba(26, 95, 180, 0.25);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-blue);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.8;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        .cover {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--light-blue) 100%);
+            color: var(--white);
+            padding: 80px 40px;
+            border-radius: var(--radius-lg);
+            margin: 40px 0;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .cover h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 4px;
+        }
+        .cover h2 {
+            font-size: 1.6rem;
+            font-weight: 400;
+            margin-bottom: 50px;
+            opacity: 0.95;
+        }
+        .cover-table {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.15);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        .cover-table td {
+            padding: 14px 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: left;
+        }
+        .cover-table td:first-child {
+            background: rgba(255,255,255,0.2);
+            font-weight: 500;
+            width: 30%;
+        }
+        
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(229, 241, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-blue);
+            padding: 16px 0;
+            margin-bottom: 40px;
+        }
+        .nav-list {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            list-style: none;
+        }
+        .nav-list a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .nav-list a:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+        
+        section { margin-bottom: 60px; }
+        .section-header {
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 20px;
+            background: linear-gradient(to right, rgba(26, 95, 180, 0.08), transparent);
+            padding: 20px 20px 20px 24px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .section-subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-blue);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-4px);
+        }
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+        .data-table th,
+        .data-table td {
+            padding: 14px 18px;
+            text-align: left;
+            border: 1px solid var(--border-blue);
+        }
+        .data-table th {
+            background: var(--primary-blue);
+            color: var(--white);
+            font-weight: 600;
+        }
+        .data-table tr:nth-child(even) {
+            background: rgba(26, 95, 180, 0.04);
+        }
+        .data-table tr:hover {
+            background: rgba(26, 95, 180, 0.08);
+        }
+        
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 28px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-blue);
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: block;
+            line-height: 1.2;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+        
+        .file-tree {
+            background: rgba(26, 95, 180, 0.04);
+            border: 1px solid var(--border-blue);
+            border-radius: var(--radius-md);
+            padding: 28px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            line-height: 2;
+        }
+        .file-tree .folder { color: var(--primary-blue); font-weight: 600; }
+        .file-tree .file { color: var(--text-secondary); }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(26, 95, 180, 0.08) 0%, rgba(53, 132, 228, 0.08) 100%);
+            border-left: 4px solid var(--primary-blue);
+            padding: 24px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin: 20px 0;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 12px 0 12px 32px;
+            position: relative;
+            border-bottom: 1px solid rgba(26, 95, 180, 0.1);
+            color: var(--text-secondary);
+        }
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--primary-blue);
+            font-weight: bold;
+            width: 24px;
+            height: 24px;
+            background: rgba(26, 95, 180, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-blue);
+            margin-top: 80px;
+            background: var(--white);
+        }
+        
+        @media (max-width: 768px) {
+            .cover { padding: 50px 24px; }
+            .cover h1 { font-size: 2rem; }
+            .cover h2 { font-size: 1.2rem; }
+            .section-title { font-size: 1.5rem; }
+            .nav-list { gap: 8px; }
+            .nav-list a { padding: 8px 14px; font-size: 0.85rem; }
+            .grid-2, .grid-4 { grid-template-columns: 1fr; }
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-blue); }
+        ::-webkit-scrollbar-thumb { background: var(--light-blue); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-blue); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="cover">
+            <h1>玄机命理</h1>
+            <h2>项目技术方案报告</h2>
+            <table class="cover-table">
+                <tr><td>项目名称</td><td>玄机命理</td></tr>
+                <tr><td>文档编号</td><td>玄机命-TECH-2026-001</td></tr>
+                <tr><td>版　　本</td><td>V1.0</td></tr>
+                <tr><td>密　　级</td><td>内部公开</td></tr>
+                <tr><td>编制单位</td><td>技术研发部</td></tr>
+                <tr><td>编制日期</td><td>2026年04月</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <nav>
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="#overview">项目概述</a></li>
+                <li><a href="#goals">建设目标</a></li>
+                <li><a href="#architecture">技术架构</a></li>
+                <li><a href="#features">核心功能</a></li>
+                <li><a href="#code">代码分析</a></li>
+                <li><a href="#deploy">部署方案</a></li>
+                <li><a href="#risk">风险评估</a></li>
+                <li><a href="#plan">实施计划</a></li>
+                <li><a href="#summary">总结展望</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section id="overview">
+            <div class="section-header">
+                <h2 class="section-title">1. 项目背景与需求分析</h2>
+                <p class="section-subtitle">Project Background & Requirements Analysis</p>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">📋 项目概述</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                        玄机命理 是一个基于现代技术栈开发的项目，采用模块化架构设计，
+                        旨在提供高效、稳定、可扩展的解决方案。
+                    </p>
+                    <ul class="feature-list">
+                        <li>采用主流技术栈，确保代码质量和开发效率</li>
+                        <li>模块化架构，便于维护和扩展</li>
+                        <li>完善的工程化配置，支持自动化构建</li>
+                        <li>良好的代码规范，提升团队协作效率</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">🎯 技术栈分析</h3>
+                    <table class="data-table">
+                        <tr><th>技术组件</th><th>检测来源</th></tr>
+                        
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="goals">
+            <div class="section-header">
+                <h2 class="section-title">2. 项目建设目标</h2>
+                <p class="section-subtitle">Project Objectives</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">🎯 总体目标</h3>
+                <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 24px;">
+                    构建一套<strong style="color: var(--primary-blue);">高效、稳定、可扩展</strong>的技术解决方案，
+                    满足业务需求的同时保证代码质量和系统性能。
+                </p>
+                
+                <div class="highlight-box">
+                    <h4 style="color: var(--primary-blue); margin-bottom: 16px;">具体目标</h4>
+                    <div class="grid-2" style="gap: 16px;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>技术先进性：</strong>采用业界主流技术栈</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>架构合理性：</strong>模块化设计，职责清晰</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>代码质量：</strong>规范统一，易于维护</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>性能优化：</strong>高效运行，资源利用合理</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <div class="section-header">
+                <h2 class="section-title">3. 技术架构方案</h2>
+                <p class="section-subtitle">Technical Architecture</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">🛠️ 技术选型</h3>
+                <table class="data-table">
+                    <tr><th>技术项</th><th>选型方案</th><th>选型理由</th></tr>
+                    
+                </table>
+            </div>
+        </section>
+
+        <section id="features">
+            <div class="section-header">
+                <h2 class="section-title">4. 核心功能设计</h2>
+                <p class="section-subtitle">Core Functionality Design</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">📦 功能模块</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                    项目包含以下核心功能模块：
+                </p>
+                <ul class="feature-list">
+                    <li>核心业务逻辑处理模块</li>
+                    <li>数据存储与管理模块</li>
+                    <li>用户交互与界面展示模块</li>
+                    <li>系统配置与管理模块</li>
+                    <li>日志记录与监控模块</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="code">
+            <div class="section-header">
+                <h2 class="section-title">5. 代码结构分析</h2>
+                <p class="section-subtitle">Code Structure Analysis</p>
+            </div>
+            
+            <div class="grid-4">
+                
+    <div class="stat-card">
+        <span class="stat-value">8</span>
+        <div class="stat-label">文件总数</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">5,368</span>
+        <div class="stat-label">代码总行数</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">3</span>
+        <div class="stat-label">编程语言</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">0</span>
+        <div class="stat-label">技术组件</div>
+    </div>
+    
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">📊 语言统计</h3>
+                <table class="data-table">
+                    <tr><th>编程语言</th><th>文件数</th><th>代码行数</th></tr>
+                    <tr><td>HTML</td><td>3</td><td>2830</td></tr>
+<tr><td>JavaScript</td><td>4</td><td>1577</td></tr>
+<tr><td>CSS</td><td>1</td><td>961</td></tr>
+
+                </table>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">📁 目录结构</h3>
+                <div class="file-tree">
+<div style="margin-left: 0px;"><span class="folder">📁 css</span></div>
+<div style="margin-left: 20px;"><span class="file">📄 style.css</span></div>
+<div style="margin-left: 0px;"><span class="folder">📁 js</span></div>
+<div style="margin-left: 20px;"><span class="file">📄 bazi.js</span></div>
+<div style="margin-left: 20px;"><span class="file">📄 characters.js</span></div>
+<div style="margin-left: 20px;"><span class="file">📄 main.js</span></div>
+<div style="margin-left: 20px;"><span class="file">📄 naming.js</span></div>
+<div style="margin-left: 0px;"><span class="file">📄 index.html</span></div>
+<div style="margin-left: 0px;"><span class="file">📄 项目技术报告.html</span></div>
+<div style="margin-left: 0px;"><span class="file">📄 项目文档.html</span></div>
+</div>
+            </div>
+        </section>
+
+        <section id="deploy">
+            <div class="section-header">
+                <h2 class="section-title">6. 部署实施方案</h2>
+                <p class="section-subtitle">Deployment Implementation</p>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">🚀 部署方式</h3>
+                    <table class="data-table">
+                        <tr><th>方式</th><th>适用场景</th><th>复杂度</th></tr>
+                        <tr><td>本地开发</td><td>开发测试、调试</td><td>低</td></tr>
+                        <tr><td>测试环境</td><td>功能验证、集成测试</td><td>中</td></tr>
+                        <tr><td>生产环境</td><td>正式服务、公网访问</td><td>中</td></tr>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">💻 系统要求</h3>
+                    <table class="data-table">
+                        <tr><th>项目</th><th>最低要求</th></tr>
+                        <tr><td>运行环境</td><td>根据技术栈确定</td></tr>
+                        <tr><td>内存</td><td>2GB+</td></tr>
+                        <tr><td>存储</td><td>1GB可用空间</td></tr>
+                        <tr><td>网络</td><td>按需配置</td></tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="risk">
+            <div class="section-header">
+                <h2 class="section-title">7. 风险评估与应对</h2>
+                <p class="section-subtitle">Risk Assessment & Mitigation</p>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">⚠️ 技术风险</h3>
+                    <table class="data-table">
+                        <tr><th>风险项</th><th>等级</th><th>应对措施</th></tr>
+                        <tr><td>依赖版本冲突</td><td>中</td><td>锁定版本，定期更新</td></tr>
+                        <tr><td>性能瓶颈</td><td>中</td><td>性能测试，优化关键路径</td></tr>
+                        <tr><td>兼容性问题</td><td>低</td><td>多环境测试</td></tr>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">🔒 安全风险</h3>
+                    <table class="data-table">
+                        <tr><th>风险项</th><th>等级</th><th>应对措施</th></tr>
+                        <tr><td>代码注入</td><td>中</td><td>输入验证，参数化查询</td></tr>
+                        <tr><td>敏感信息泄露</td><td>中</td><td>配置分离，加密存储</td></tr>
+                        <tr><td>依赖安全</td><td>低</td><td>定期扫描，及时更新</td></tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="plan">
+            <div class="section-header">
+                <h2 class="section-title">8. 项目实施计划</h2>
+                <p class="section-subtitle">Implementation Plan</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">📅 实施阶段</h3>
+                <div class="highlight-box">
+                    <div style="display: grid; gap: 20px;">
+                        <div>
+                            <h4 style="color: var(--primary-blue); margin-bottom: 8px;">第一阶段：需求分析与设计（第1周）</h4>
+                            <p style="color: var(--text-secondary);">完成需求梳理、技术选型、架构设计</p>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--primary-blue); margin-bottom: 8px;">第二阶段：核心开发（第2-4周）</h4>
+                            <p style="color: var(--text-secondary);">实现核心功能模块，完成基础版本</p>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--primary-blue); margin-bottom: 8px;">第三阶段：测试优化（第5-6周）</h4>
+                            <p style="color: var(--text-secondary);">功能测试、性能优化、Bug修复</p>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--primary-blue); margin-bottom: 8px;">第四阶段：部署上线（第7周）</h4>
+                            <p style="color: var(--text-secondary);">环境部署、上线发布、运维监控</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="summary">
+            <div class="section-header">
+                <h2 class="section-title">9. 总结与展望</h2>
+                <p class="section-subtitle">Summary & Future Outlook</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">✨ 方案总结</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                    本技术方案针对 玄机命理 项目的需求，提出了一套<strong style="color: var(--primary-blue);">先进、可靠、可扩展</strong>的解决方案：
+                </p>
+                <div class="grid-2" style="gap: 16px;">
+                    <div class="highlight-box" style="margin: 0;">
+                        <h4 style="color: var(--primary-blue); margin-bottom: 12px;">1. 技术先进性</h4>
+                        <p style="color: var(--text-secondary);">采用业界主流技术栈，确保项目的长期可维护性</p>
+                    </div>
+                    <div class="highlight-box" style="margin: 0;">
+                        <h4 style="color: var(--primary-blue); margin-bottom: 12px;">2. 架构合理性</h4>
+                        <p style="color: var(--text-secondary);">模块化设计，职责清晰，便于团队协作开发</p>
+                    </div>
+                    <div class="highlight-box" style="margin: 0;">
+                        <h4 style="color: var(--primary-blue); margin-bottom: 12px;">3. 代码质量</h4>
+                        <p style="color: var(--text-secondary);">规范统一的代码风格，完善的工程化配置</p>
+                    </div>
+                    <div class="highlight-box" style="margin: 0;">
+                        <h4 style="color: var(--primary-blue); margin-bottom: 12px;">4. 可扩展性</h4>
+                        <p style="color: var(--text-secondary);">良好的扩展性设计，支持业务持续发展</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">💡 优化建议</h3>
+                <table class="data-table">
+                    <tr><th>优化方向</th><th>具体建议</th></tr>
+                    <tr><td>代码质量</td><td>引入代码审查机制，提升代码质量</td></tr>
+                    <tr><td>测试覆盖</td><td>增加单元测试和集成测试覆盖率</td></tr>
+                    <tr><td>文档完善</td><td>完善技术文档和API文档</td></tr>
+                    <tr><td>性能优化</td><td>持续监控和优化系统性能</td></tr>
+                    <tr><td>安全加固</td><td>定期进行安全审计和漏洞修复</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            <p style="font-size: 1.3rem; color: var(--primary-blue); margin-bottom: 12px; font-weight: 600;">玄机命理</p>
+            <p style="color: var(--text-muted);">项目技术方案报告 V1.0 | 编制日期：2026年04月</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 16px; padding: 16px; background: rgba(26, 95, 180, 0.05); border-radius: var(--radius-sm);">
+                <strong>免责声明：</strong>本报告由AI辅助生成，内容仅供参考。
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-list a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.style.background = '';
+                link.style.color = '';
+                if (link.getAttribute('href') === '#' + current) {
+                    link.style.background = 'var(--primary-blue)';
+                    link.style.color = 'var(--white)';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

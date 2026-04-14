@@ -1,0 +1,10 @@
+# 忽略本地目录
+.qoder/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# 其他文件
+CODING_STYLE.md
+QwenPaw技术方案报告.md

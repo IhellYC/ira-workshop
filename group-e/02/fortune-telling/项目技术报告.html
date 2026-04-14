@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玄机命理 - 八字起名与命理分析系统技术报告</title>
+    <meta name="description" content="玄机命理八字起名与命理分析系统技术方案报告">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-blue: #1a5fb4;
+            --light-blue: #3584e4;
+            --bg-blue: #e5f1ff;
+            --border-blue: #99c1f1;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a5a;
+            --text-muted: #6b6b7b;
+            --white: #ffffff;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 20px rgba(26, 95, 180, 0.15);
+            --shadow-hover: 0 8px 30px rgba(26, 95, 180, 0.25);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-blue);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.8;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* 封面 */
+        .cover {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--light-blue) 100%);
+            color: var(--white);
+            padding: 80px 40px;
+            border-radius: var(--radius-lg);
+            margin: 40px 0;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .cover h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 4px;
+        }
+        .cover h2 {
+            font-size: 1.6rem;
+            font-weight: 400;
+            margin-bottom: 50px;
+            opacity: 0.95;
+        }
+        .cover-table {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.15);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        .cover-table td {
+            padding: 14px 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: left;
+        }
+        .cover-table td:first-child {
+            background: rgba(255,255,255,0.2);
+            font-weight: 500;
+            width: 30%;
+        }
+        
+        /* 导航 */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(229, 241, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-blue);
+            padding: 16px 0;
+            margin-bottom: 40px;
+        }
+        .nav-list {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            list-style: none;
+        }
+        .nav-list a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .nav-list a:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+        
+        /* 章节标题 */
+        section {
+            margin-bottom: 60px;
+        }
+        .section-header {
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 20px;
+            background: linear-gradient(to right, rgba(26, 95, 180, 0.08), transparent);
+            padding: 20px 20px 20px 24px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .section-subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        
+        /* 卡片 */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-blue);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-4px);
+        }
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        /* 网格布局 */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        /* 表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+        .data-table th,
+        .data-table td {
+            padding: 14px 18px;
+            text-align: left;
+            border: 1px solid var(--border-blue);
+        }
+        .data-table th {
+            background: var(--primary-blue);
+            color: var(--white);
+            font-weight: 600;
+        }
+        .data-table tr:nth-child(even) {
+            background: rgba(26, 95, 180, 0.04);
+        }
+        .data-table tr:hover {
+            background: rgba(26, 95, 180, 0.08);
+        }
+        
+        /* 代码块 */
+        .code-block {
+            background: #1a365d;
+            border: 1px solid var(--light-blue);
+            border-radius: var(--radius-sm);
+            padding: 24px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: #e5f1ff;
+        }
+        .code-block .comment { color: #6b7280; }
+        .code-block .keyword { color: #c084fc; }
+        .code-block .string { color: #4ade80; }
+        .code-block .function { color: #60a5fa; }
+        
+        /* 架构图 */
+        .arch-diagram {
+            background: rgba(26, 95, 180, 0.04);
+            border: 1px solid var(--border-blue);
+            border-radius: var(--radius-md);
+            padding: 32px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 2;
+            overflow-x: auto;
+        }
+        .arch-box {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--white);
+            border: 2px solid var(--primary-blue);
+            border-radius: var(--radius-sm);
+            margin: 6px;
+            color: var(--primary-blue);
+            font-weight: 500;
+        }
+        .arch-arrow {
+            color: var(--primary-blue);
+            margin: 0 12px;
+            font-size: 1.2rem;
+        }
+        
+        /* 统计 */
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 28px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-blue);
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: block;
+            line-height: 1.2;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+        
+        /* 功能列表 */
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 12px 0 12px 32px;
+            position: relative;
+            border-bottom: 1px solid rgba(26, 95, 180, 0.1);
+            color: var(--text-secondary);
+        }
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--primary-blue);
+            font-weight: bold;
+            width: 24px;
+            height: 24px;
+            background: rgba(26, 95, 180, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+        
+        /* 文件树 */
+        .file-tree {
+            background: rgba(26, 95, 180, 0.04);
+            border: 1px solid var(--border-blue);
+            border-radius: var(--radius-md);
+            padding: 28px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            line-height: 2;
+        }
+        .file-tree .folder { color: var(--primary-blue); font-weight: 600; }
+        .file-tree .file { color: var(--text-secondary); }
+        .file-tree .comment { color: var(--text-muted); margin-left: 16px; font-size: 0.85rem; }
+        
+        /* 流程 */
+        .process-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 32px;
+            background: rgba(26, 95, 180, 0.04);
+            border-radius: var(--radius-md);
+            margin: 20px 0;
+        }
+        .process-step {
+            background: var(--white);
+            border: 2px solid var(--primary-blue);
+            border-radius: var(--radius-sm);
+            padding: 16px 24px;
+            text-align: center;
+            min-width: 140px;
+            font-weight: 500;
+            color: var(--primary-blue);
+        }
+        .process-arrow {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+        }
+        
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(26, 95, 180, 0.1);
+            color: var(--primary-blue);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 4px;
+        }
+        
+        /* 强调框 */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(26, 95, 180, 0.08) 0%, rgba(53, 132, 228, 0.08) 100%);
+            border-left: 4px solid var(--primary-blue);
+            padding: 24px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin: 20px 0;
+        }
+        
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-blue);
+            margin-top: 80px;
+            background: var(--white);
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .cover { padding: 50px 24px; }
+            .cover h1 { font-size: 2rem; }
+            .cover h2 { font-size: 1.2rem; }
+            .section-title { font-size: 1.5rem; }
+            .nav-list { gap: 8px; }
+            .nav-list a { padding: 8px 14px; font-size: 0.85rem; }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+            .process-flow { flex-direction: column; }
+            .process-arrow { transform: rotate(90deg); }
+        }
+        
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-blue); }
+        ::-webkit-scrollbar-thumb { background: var(--light-blue); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-blue); }
+        
+        ::selection {
+            background: rgba(26, 95, 180, 0.2);
+            color: var(--primary-blue);
+        }
+    </style>
+</head>
+<body>
+    <!-- 封面 -->
+    <div class="container">
+        <div class="cover">
+            <h1>玄机命理</h1>
+            <h2>八字起名与命理分析系统技术方案报告</h2>
+            <table class="cover-table">
+                <tr>
+                    <td>项目名称</td>
+                    <td>玄机命理 - 八字起名与命理分析系统</td>
+                </tr>
+                <tr>
+                    <td>文档编号</td>
+                    <td>XJ-TECH-2026-001</td>
+                </tr>
+                <tr>
+                    <td>版　　本</td>
+                    <td>V1.0</td>
+                </tr>
+                <tr>
+                    <td>密　　级</td>
+                    <td>内部公开</td>
+                </tr>
+                <tr>
+                    <td>编制单位</td>
+                    <td>技术研发部</td>
+                </tr>
+                <tr>
+                    <td>编制日期</td>
+                    <td>2026年4月</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 导航 -->
+    <nav>
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="#overview">项目概述</a></li>
+                <li><a href="#goals">建设目标</a></li>
+                <li><a href="#architecture">技术架构</a></li>
+                <li><a href="#features">核心功能</a></li>
+                <li><a href="#code">代码分析</a></li>
+                <li><a href="#deploy">部署方案</a></li>
+                <li><a href="#risk">风险评估</a></li>
+                <li><a href="#plan">实施计划</a></li>
+                <li><a href="#summary">总结展望</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- 1. 项目概述 -->
+        <section id="overview">
+            <div class="section-header">
+                <h2 class="section-title">1. 项目背景与需求分析</h2>
+                <p class="section-subtitle">Project Background & Requirements Analysis</p>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">📋 行业背景</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                        随着传统文化的复兴和互联网技术的发展，命理学相关的数字化工具需求日益增长。然而，现有产品普遍存在以下问题：
+                    </p>
+                    <ul class="feature-list">
+                        <li>算法不够精确，八字计算存在偏差</li>
+                        <li>依赖后端服务，无法离线使用</li>
+                        <li>界面设计陈旧，用户体验不佳</li>
+                        <li>功能单一，缺乏系统性分析</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">🎯 需求分析</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>需求类别</th>
+                            <th>具体需求</th>
+                        </tr>
+                        <tr>
+                            <td>纯前端实现</td>
+                            <td>无需后端服务器，可直接在浏览器运行</td>
+                        </tr>
+                        <tr>
+                            <td>精确算法</td>
+                            <td>准确的八字四柱、五行分析计算</td>
+                        </tr>
+                        <tr>
+                            <td>智能起名</td>
+                            <td>基于八字喜用神的智能名字推荐</td>
+                        </tr>
+                        <tr>
+                            <td>名字拆解</td>
+                            <td>五行属性、三才五格全面分析</td>
+                        </tr>
+                        <tr>
+                            <td>美观界面</td>
+                            <td>现代化的UI设计，良好的用户体验</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 建设目标 -->
+        <section id="goals">
+            <div class="section-header">
+                <h2 class="section-title">2. 项目建设目标</h2>
+                <p class="section-subtitle">Project Objectives</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">🎯 总体目标</h3>
+                <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 24px;">
+                    构建一套<strong style="color: var(--primary-blue);">精确、美观、易用</strong>的命理分析系统，实现纯前端环境下的八字计算、智能起名、名字拆解等核心功能。
+                </p>
+                
+                <div class="highlight-box">
+                    <h4 style="color: var(--primary-blue); margin-bottom: 16px;">具体目标</h4>
+                    <div class="grid-2" style="gap: 16px;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>纯前端实现：</strong>HTML+CSS+JS，无需后端服务</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>精确算法：</strong>完整的八字四柱、五行分析</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>智能起名：</strong>基于喜用神的个性化推荐</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>响应式设计：</strong>适配桌面端和移动端</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>精美UI：</strong>玄学风格主题设计</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="color: var(--primary-blue); font-weight: bold;">✓</span>
+                            <span><strong>汉字数据库：</strong>100+常用汉字五行属性</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 技术架构 -->
+        <section id="architecture">
+            <div class="section-header">
+                <h2 class="section-title">3. 技术架构方案</h2>
+                <p class="section-subtitle">Technical Architecture</p>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">🛠️ 技术选型</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>技术项</th>
+                            <th>选型方案</th>
+                            <th>选型理由</th>
+                        </tr>
+                        <tr>
+                            <td>开发语言</td>
+                            <td>HTML5 + CSS3 + ES6+</td>
+                            <td>标准Web技术，兼容性好</td>
+                        </tr>
+                        <tr>
+                            <td>样式框架</td>
+                            <td>原生CSS + CSS变量</td>
+                            <td>自定义主题，无依赖</td>
+                        </tr>
+                        <tr>
+                            <td>字体资源</td>
+                            <td>Google Fonts</td>
+                            <td>支持中文衬线字体</td>
+                        </tr>
+                        <tr>
+                            <td>运行环境</td>
+                            <td>现代浏览器</td>
+                            <td>无需服务器，直接运行</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">📁 文件结构</h3>
+                    <div class="file-tree">
+                        <div class="folder">📁 fortune-telling/</div>
+                        <div style="margin-left: 20px;">
+                            <div class="file">📄 index.html <span class="comment">(353行 - 页面结构)</span></div>
+                            <div class="folder">📁 css/</div>
+                            <div style="margin-left: 20px;">
+                                <div class="file">📄 style.css <span class="comment">(962行 - 样式主题)</span></div>
+                            </div>
+                            <div class="folder">📁 js/</div>
+                            <div style="margin-left: 20px;">
+                                <div class="file">📄 main.js <span class="comment">(525行 - 主逻辑)</span></div>
+                                <div class="file">📄 bazi.js <span class="comment">(402行 - 八字计算)</span></div>
+                                <div class="file">📄 naming.js <span class="comment">(385行 - 起名算法)</span></div>
+                                <div class="file">📄 characters.js <span class="comment">(269行 - 汉字库)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">🏗️ 系统架构</h3>
+                <div class="arch-diagram">
+                    <div style="margin-bottom: 16px;">
+                        <span class="arch-box">用户浏览器</span>
+                    </div>
+                    <div style="margin: 12px 0; color: var(--primary-blue);">↓</div>
+                    <div style="margin-bottom: 16px;">
+                        <span class="arch-box">index.html</span>
+                        <span class="arch-arrow">→</span>
+                        <span class="arch-box">css/style.css</span>
+                        <span class="arch-arrow">→</span>
+                        <span class="arch-box">js/*.js</span>
+                    </div>
+                    <div style="margin: 12px 0; color: var(--primary-blue);">↓</div>
+                    <div>
+                        <span class="arch-box">BaZiCalculator</span>
+                        <span class="arch-box">NamingEngine</span>
+                        <span class="arch-box">CharacterDatabase</span>
+                    </div>
+                </div>
+                
+                <table class="data-table" style="margin-top: 24px;">
+                    <tr>
+                        <th>层级</th>
+                        <th>组件</th>
+                        <th>职责说明</th>
+                    </tr>
+                    <tr>
+                        <td>UI层</td>
+                        <td>index.html</td>
+                        <td>页面结构、表单定义、结果展示</td>
+                    </tr>
+                    <tr>
+                        <td>样式层</td>
+                        <td>style.css</td>
+                        <td>玄学主题样式、响应式布局、动画效果</td>
+                    </tr>
+                    <tr>
+                        <td>控制层</td>
+                        <td>main.js</td>
+                        <td>页面交互、表单处理、结果渲染</td>
+                    </tr>
+                    <tr>
+                        <td>算法层</td>
+                        <td>bazi.js / naming.js</td>
+                        <td>八字计算、起名算法、名字拆解</td>
+                    </tr>
+                    <tr>
+                        <td>数据层</td>
+                        <td>characters.js</td>
+                        <td>汉字五行数据库、三才五格计算</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. 核心功能 -->
+        <section id="features">
+            <div class="section-header">
+                <h2 class="section-title">4. 核心功能设计</h2>
+                <p class="section-subtitle">Core Functionality Design</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">📝 智能起名流程</h3>
+                <div class="process-flow">
+                    <div class="process-step">用户输入<br><small style="color: var(--text-muted);">姓氏/性别/生辰</small></div>
+                    <span class="process-arrow">→</span>
+                    <div class="process-step">八字分析<br><small style="color: var(--text-muted);">计算四柱五行</small></div>
+                    <span class="process-arrow">→</span>
+                    <div class="process-step">确定喜用神<br><small style="color: var(--text-muted);">分析五行喜忌</small></div>
+                    <span class="process-arrow">→</span>
+                    <div class="process-step">筛选候选字<br><small style="color: var(--text-muted);">匹配五行属性</small></div>
+                    <span class="process-arrow">→</span>
+                    <div class="process-step">生成名字<br><small style="color: var(--text-muted);">单字/双字组合</small></div>
+                    <span class="process-arrow">→</span>
+                    <div class="process-step">评分排序<br><small style="color: var(--text-muted);">综合评分输出</small></div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">☯ 八字分析模块</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>功能点</th>
+                            <th>实现算法</th>
+                        </tr>
+                        <tr>
+                            <td>四柱计算</td>
+                            <td>年柱/月柱/日柱/时柱计算算法</td>
+                        </tr>
+                        <tr>
+                            <td>五行分析</td>
+                            <td>天干地支五行属性统计</td>
+                        </tr>
+                        <tr>
+                            <td>日主强弱</td>
+                            <td>月令生助判断 + 同元素计数</td>
+                        </tr>
+                        <tr>
+                            <td>喜用神</td>
+                            <td>身强身弱判断 → 生克关系推导</td>
+                        </tr>
+                        <tr>
+                            <td>性格分析</td>
+                            <td>日干对应性格特征库</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">🔍 名字拆解模块</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>分析维度</th>
+                            <th>说明</th>
+                        </tr>
+                        <tr>
+                            <td>逐字解析</td>
+                            <td>拼音、笔画、五行、字义</td>
+                        </tr>
+                        <tr>
+                            <td>五行分布</td>
+                            <td>统计名字中五行元素数量</td>
+                        </tr>
+                        <tr>
+                            <td>三才五格</td>
+                            <td>天格、人格、地格、外格、总格计算</td>
+                        </tr>
+                        <tr>
+                            <td>综合评分</td>
+                            <td>五行平衡 + 笔画适中 + 三才配置</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">🎨 五行色彩体系</h3>
+                <div class="grid-3" style="text-align: center; margin-top: 20px;">
+                    <div style="padding: 24px; background: rgba(232, 232, 232, 0.3); border-radius: var(--radius-md); border: 2px solid #e8e8e8;">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #888;">金</div>
+                        <div style="color: var(--text-muted); margin-top: 8px;">#e8e8e8</div>
+                    </div>
+                    <div style="padding: 24px; background: rgba(74, 155, 74, 0.1); border-radius: var(--radius-md); border: 2px solid #4a9b4a;">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #4a9b4a;">木</div>
+                        <div style="color: var(--text-muted); margin-top: 8px;">#4a9b4a</div>
+                    </div>
+                    <div style="padding: 24px; background: rgba(74, 144, 217, 0.1); border-radius: var(--radius-md); border: 2px solid #4a90d9;">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #4a90d9;">水</div>
+                        <div style="color: var(--text-muted); margin-top: 8px;">#4a90d9</div>
+                    </div>
+                    <div style="padding: 24px; background: rgba(217, 70, 70, 0.1); border-radius: var(--radius-md); border: 2px solid #d94646;">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #d94646;">火</div>
+                        <div style="color: var(--text-muted); margin-top: 8px;">#d94646</div>
+                    </div>
+                    <div style="padding: 24px; background: rgba(184, 148, 31, 0.1); border-radius: var(--radius-md); border: 2px solid #b8941f;">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #b8941f;">土</div>
+                        <div style="color: var(--text-muted); margin-top: 8px;">#b8941f</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 代码分析 -->
+        <section id="code">
+            <div class="section-header">
+                <h2 class="section-title">5. 代码结构分析</h2>
+                <p class="section-subtitle">Code Structure Analysis</p>
+            </div>
+            
+            <div class="grid-4">
+                <div class="stat-card">
+                    <span class="stat-value">6</span>
+                    <div class="stat-label">文件总数</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">~2,896</span>
+                    <div class="stat-label">代码总行数</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">4</span>
+                    <div class="stat-label">JS 模块</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">100+</span>
+                    <div class="stat-label">汉字数据</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">📊 代码统计详情</h3>
+                <table class="data-table">
+                    <tr>
+                        <th>文件</th>
+                        <th>行数</th>
+                        <th>功能说明</th>
+                    </tr>
+                    <tr>
+                        <td>index.html</td>
+                        <td>353</td>
+                        <td>页面结构、表单定义</td>
+                    </tr>
+                    <tr>
+                        <td>style.css</td>
+                        <td>962</td>
+                        <td>玄学主题样式、响应式布局</td>
+                    </tr>
+                    <tr>
+                        <td>main.js</td>
+                        <td>525</td>
+                        <td>页面交互、表单处理、结果渲染</td>
+                    </tr>
+                    <tr>
+                        <td>bazi.js</td>
+                        <td>402</td>
+                        <td>八字计算、五行分析、喜用神判断</td>
+                    </tr>
+                    <tr>
+                        <td>naming.js</td>
+                        <td>385</td>
+                        <td>起名算法、名字评分、名字拆解</td>
+                    </tr>
+                    <tr>
+                        <td>characters.js</td>
+                        <td>269</td>
+                        <td>汉字数据库、三才五格计算</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">☯ 八字计算算法</h3>
+                <div class="code-block">
+<span class="comment">// 年柱计算</span>
+<span class="keyword">const</span> <span class="function">ganIndex</span> = (year - <span class="string">4</span>) % <span class="string">10</span>;  <span class="comment">// 年干</span>
+<span class="keyword">const</span> <span class="function">zhiIndex</span> = (year - <span class="string">4</span>) % <span class="string">12</span>;  <span class="comment">// 年支</span>
+
+<span class="comment">// 月柱计算（年上起月法）</span>
+<span class="comment">// 甲己之年丙作首，乙庚之岁戊为头...</span>
+
+<span class="comment">// 日柱计算（基于1900-01-01为甲日基准）</span>
+<span class="keyword">const</span> offset = <span class="function">Math.floor</span>((targetDate - baseDate) / <span class="string">86400000</span>);
+<span class="keyword">const</span> <span class="function">ganIndex</span> = offset % <span class="string">10</span>;
+
+<span class="comment">// 时柱计算（日上起时法）</span>
+<span class="comment">// 甲己还加甲，乙庚丙作初...</span>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">🌿 五行分析算法</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>分析项</th>
+                            <th>算法说明</th>
+                        </tr>
+                        <tr>
+                            <td>天干五行</td>
+                            <td>甲乙木、丙丁火、戊己土、庚辛金、壬癸水</td>
+                        </tr>
+                        <tr>
+                            <td>地支五行</td>
+                            <td>寅卯木、巳午火、申酉金、亥子水、辰戌丑未土</td>
+                        </tr>
+                        <tr>
+                            <td>地支藏干</td>
+                            <td>每个地支包含1-3个天干</td>
+                        </tr>
+                        <tr>
+                            <td>五行统计</td>
+                            <td>天干+地支+藏干加权计算</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">📐 三才五格计算</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>格局</th>
+                            <th>计算公式</th>
+                        </tr>
+                        <tr>
+                            <td>天格</td>
+                            <td>姓氏笔画 + 1</td>
+                        </tr>
+                        <tr>
+                            <td>人格</td>
+                            <td>姓氏笔画 + 名字首字笔画</td>
+                        </tr>
+                        <tr>
+                            <td>地格</td>
+                            <td>名字笔画 + 1</td>
+                        </tr>
+                        <tr>
+                            <td>外格</td>
+                            <td>天格 + 地格 - 人格</td>
+                        </tr>
+                        <tr>
+                            <td>总格</td>
+                            <td>姓名总笔画</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. 部署方案 -->
+        <section id="deploy">
+            <div class="section-header">
+                <h2 class="section-title">6. 部署实施方案</h2>
+                <p class="section-subtitle">Deployment Implementation</p>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">🚀 部署方式</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>方式</th>
+                            <th>适用场景</th>
+                            <th>复杂度</th>
+                        </tr>
+                        <tr>
+                            <td>本地运行</td>
+                            <td>开发测试、个人使用</td>
+                            <td>低</td>
+                        </tr>
+                        <tr>
+                            <td>本地服务器</td>
+                            <td>局域网共享</td>
+                            <td>中</td>
+                        </tr>
+                        <tr>
+                            <td>静态托管</td>
+                            <td>生产环境、公网访问</td>
+                            <td>低</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">💻 系统要求</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>项目</th>
+                            <th>最低要求</th>
+                        </tr>
+                        <tr>
+                            <td>浏览器</td>
+                            <td>Chrome 80+ / Firefox 75+ / Safari 13+</td>
+                        </tr>
+                        <tr>
+                            <td>JavaScript</td>
+                            <td>支持 ES6+</td>
+                        </tr>
+                        <tr>
+                            <td>CSS</td>
+                            <td>支持 CSS 变量、Grid、Flexbox</td>
+                        </tr>
+                        <tr>
+                            <td>网络</td>
+                            <td>需联网加载 Google Fonts</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">📦 文件清单</h3>
+                <div class="file-tree">
+                    <div class="folder">📁 fortune-telling/</div>
+                    <div style="margin-left: 20px;">
+                        <div class="file">📄 index.html <span class="comment">(必需)</span></div>
+                        <div class="folder">📁 css/</div>
+                        <div style="margin-left: 20px;">
+                            <div class="file">📄 style.css <span class="comment">(必需)</span></div>
+                        </div>
+                        <div class="folder">📁 js/</div>
+                        <div style="margin-left: 20px;">
+                            <div class="file">📄 bazi.js <span class="comment">(必需)</span></div>
+                            <div class="file">📄 characters.js <span class="comment">(必需)</span></div>
+                            <div class="file">📄 naming.js <span class="comment">(必需)</span></div>
+                            <div class="file">📄 main.js <span class="comment">(必需)</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. 风险评估 -->
+        <section id="risk">
+            <div class="section-header">
+                <h2 class="section-title">7. 风险评估与应对</h2>
+                <p class="section-subtitle">Risk Assessment & Mitigation</p>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">⚠️ 技术风险</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>风险项</th>
+                            <th>等级</th>
+                            <th>应对措施</th>
+                        </tr>
+                        <tr>
+                            <td>算法精度问题</td>
+                            <td>中</td>
+                            <td>引入完整农历库，提高计算精度</td>
+                        </tr>
+                        <tr>
+                            <td>浏览器兼容性</td>
+                            <td>低</td>
+                            <td>使用标准Web技术，广泛测试</td>
+                        </tr>
+                        <tr>
+                            <td>字体加载失败</td>
+                            <td>低</td>
+                            <td>设置系统字体回退方案</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">🔒 安全风险</h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>风险项</th>
+                            <th>等级</th>
+                            <th>应对措施</th>
+                        </tr>
+                        <tr>
+                            <td>XSS攻击</td>
+                            <td>低</td>
+                            <td>纯前端实现，无用户数据存储</td>
+                        </tr>
+                        <tr>
+                            <td>代码泄露</td>
+                            <td>中</td>
+                            <td>前端代码天然可见，无需特别防护</td>
+                        </tr>
+                        <tr>
+                            <td>依赖安全</td>
+                            <td>低</td>
+                            <td>仅使用Google Fonts，风险可控</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. 实施计划 -->
+        <section id="plan">
+            <div class="section-header">
+                <h2 class="section-title">8. 项目实施计划</h2>
+                <p class="section-subtitle">Implementation Plan</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">📅 实施阶段</h3>
+                <div class="highlight-box">
+                    <div style="display: grid; gap: 20px;">
+                        <div>
+                            <h4 style="color: var(--primary-blue); margin-bottom: 8px;">第一阶段：核心功能开发（第1-2周）</h4>
+                            <p style="color: var(--text-secondary);">完成八字计算核心算法、基础页面结构</p>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--primary-blue); margin-bottom: 8px;">第二阶段：功能完善（第3-4周）</h4>
+                            <p style="color: var(--text-secondary);">实现智能起名、名字拆解功能</p>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--primary-blue); margin-bottom: 8px;">第三阶段：UI优化（第5-6周）</h4>
+                            <p style="color: var(--text-secondary);">完成玄学主题设计、响应式适配</p>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--primary-blue); margin-bottom: 8px;">第四阶段：测试部署（第7-8周）</h4>
+                            <p style="color: var(--text-secondary);">功能测试、性能优化、部署上线</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">👥 资源投入</h3>
+                <table class="data-table">
+                    <tr>
+                        <th>角色</th>
+                        <th>人数</th>
+                        <th>职责</th>
+                    </tr>
+                    <tr>
+                        <td>前端开发</td>
+                        <td>1</td>
+                        <td>页面开发、样式设计、交互实现</td>
+                    </tr>
+                    <tr>
+                        <td>算法工程师</td>
+                        <td>1</td>
+                        <td>八字算法、起名算法实现</td>
+                    </tr>
+                    <tr>
+                        <td>UI设计师</td>
+                        <td>1</td>
+                        <td>视觉设计、主题风格定义</td>
+                    </tr>
+                    <tr>
+                        <td>测试工程师</td>
+                        <td>1</td>
+                        <td>功能测试、算法验证</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- 9. 总结展望 -->
+        <section id="summary">
+            <div class="section-header">
+                <h2 class="section-title">9. 总结与展望</h2>
+                <p class="section-subtitle">Summary & Future Outlook</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">✨ 方案总结</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                    本技术方案针对命理分析工具的需求，提出了一套<strong style="color: var(--primary-blue);">精确、美观、易用</strong>的纯前端解决方案：
+                </p>
+                <div class="grid-2" style="gap: 16px;">
+                    <div class="highlight-box" style="margin: 0;">
+                        <h4 style="color: var(--primary-blue); margin-bottom: 12px;">1. 纯前端实现</h4>
+                        <p style="color: var(--text-secondary);">无需后端服务器，可直接在浏览器运行，部署简单便捷</p>
+                    </div>
+                    <div class="highlight-box" style="margin: 0;">
+                        <h4 style="color: var(--primary-blue); margin-bottom: 12px;">2. 精确算法</h4>
+                        <p style="color: var(--text-secondary);">完整的八字四柱、五行分析、喜用神判断算法</p>
+                    </div>
+                    <div class="highlight-box" style="margin: 0;">
+                        <h4 style="color: var(--primary-blue); margin-bottom: 12px;">3. 精美UI</h4>
+                        <p style="color: var(--text-secondary);">玄学风格主题设计，深蓝/黑金配色，视觉效果出色</p>
+                    </div>
+                    <div class="highlight-box" style="margin: 0;">
+                        <h4 style="color: var(--primary-blue); margin-bottom: 12px;">4. 响应式设计</h4>
+                        <p style="color: var(--text-secondary);">适配桌面端和移动端，用户体验良好</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">💡 优化建议</h3>
+                <table class="data-table">
+                    <tr>
+                        <th>优化方向</th>
+                        <th>具体建议</th>
+                    </tr>
+                    <tr>
+                        <td>算法精度</td>
+                        <td>引入完整的农历库，提高八字计算精度</td>
+                    </tr>
+                    <tr>
+                        <td>汉字库</td>
+                        <td>扩展汉字数据库，支持更多生僻字</td>
+                    </tr>
+                    <tr>
+                        <td>离线支持</td>
+                        <td>将 Google Fonts 本地化，实现完全离线运行</td>
+                    </tr>
+                    <tr>
+                        <td>数据持久</td>
+                        <td>添加 LocalStorage，保存用户历史记录</td>
+                    </tr>
+                    <tr>
+                        <td>性能优化</td>
+                        <td>对大数据量的汉字库进行懒加载</td>
+                    </tr>
+                    <tr>
+                        <td>测试覆盖</td>
+                        <td>添加单元测试，验证算法正确性</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">🔮 后续展望</h3>
+                <div class="process-flow">
+                    <div class="process-step">功能扩展<br><small style="color: var(--text-muted);">紫微斗数/六爻</small></div>
+                    <span class="process-arrow">→</span>
+                    <div class="process-step">AI 集成<br><small style="color: var(--text-muted);">智能分析报告</small></div>
+                    <span class="process-arrow">→</span>
+                    <div class="process-step">多语言<br><small style="color: var(--text-muted);">英文等界面</small></div>
+                    <span class="process-arrow">→</span>
+                    <div class="process-step">小程序<br><small style="color: var(--text-muted);">微信生态</small></div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p style="font-size: 1.3rem; color: var(--primary-blue); margin-bottom: 12px; font-weight: 600;">玄机命理 - 传承东方智慧</p>
+            <p style="color: var(--text-muted);">项目技术方案报告 V1.0 | 编制日期：2026年4月</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 16px; padding: 16px; background: rgba(26, 95, 180, 0.05); border-radius: var(--radius-sm);">
+                <strong>免责声明：</strong>本工具仅供娱乐参考，命理分析结果不代表真实情况，请理性看待。本报告由AI辅助生成，内容仅供参考。
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 导航栏高亮
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-list a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.style.background = '';
+                link.style.color = '';
+                if (link.getAttribute('href') === '#' + current) {
+                    link.style.background = 'var(--primary-blue)';
+                    link.style.color = 'var(--white)';
+                }
+            });
+        });
+
+        // 卡片进入动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card, .stat-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
